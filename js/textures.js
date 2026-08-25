@@ -1,11 +1,13 @@
-// Загрузчик текстур
 const Textures = {
     floor: [],
     ceiling: [],
     walls: [],
-    moon: null,
     oak: null,
     buildings: {},
+    
+    floorTiles: [],
+    ceilingTiles: [],
+    wallTiles: [],
     
     loaded: false,
     totalTextures: 0,
@@ -20,13 +22,19 @@ const Textures = {
             });
         }
         
-        // Потолок - 11 плиток
+        // Потолок - 11 обычных плиток
         for (let i = 1; i <= 11; i++) {
             this.loadImage(`assets/ceiling_area_${i}.png`, (img) => {
                 this.ceiling.push(img);
                 this.checkLoaded(callback);
             });
         }
+        
+        // Потолок с луной (12-я плитка)
+        this.loadImage('assets/area_ceiling_moon.png', (img) => {
+            this.ceiling.push(img);
+            this.checkLoaded(callback);
+        });
         
         // Стены - 10 плиток
         for (let i = 1; i <= 10; i++) {
@@ -35,12 +43,6 @@ const Textures = {
                 this.checkLoaded(callback);
             });
         }
-        
-        // Луна
-        this.loadImage('assets/area_ceiling_moon.png', (img) => {
-            this.moon = img;
-            this.checkLoaded(callback);
-        });
         
         // Дуб
         this.loadImage('assets/oak_area.png', (img) => {
@@ -64,11 +66,9 @@ const Textures = {
             'Трофейный зал': 'hero_bag.png',
             'Квесты': 'quest.png',
             'Рейд': 'raid.png',
-            'Ежедневные': 'daily_quests.png',
-            'Настройки': 'settings.png',
         };
         
-        this.totalTextures = 6 + 11 + 10 + 1 + 1 + Object.keys(buildingIcons).length;
+        this.totalTextures = 6 + 12 + 10 + 1 + Object.keys(buildingIcons).length;
         
         for (const [name, file] of Object.entries(buildingIcons)) {
             this.loadImage(`assets/icons/${file}`, (img) => {
@@ -88,27 +88,61 @@ const Textures = {
         img.src = src;
     },
     
+    generateTileMaps() {
+        this.floorTiles = this.generateMap(6);
+        this.ceilingTiles = this.generateMap(12);
+        this.wallTiles = this.generateMap(10);
+    },
+    
+    generateMap(textureCount) {
+        const tiles = [];
+        for (let y = 0; y < 20; y++) {
+            tiles[y] = [];
+            for (let x = 0; x < 20; x++) {
+                tiles[y][x] = Math.floor(Math.random() * textureCount);
+            }
+        }
+        return tiles;
+    },
+    
+    getFloorTexture(mapX, mapY) {
+        if (mapY >= 0 && mapY < 20 && mapX >= 0 && mapX < 20) {
+            const idx = this.floorTiles[mapY][mapX];
+            if (idx !== undefined && this.floor[idx]) {
+                return this.floor[idx];
+            }
+        }
+        return null;
+    },
+    
+    getCeilingTexture(mapX, mapY) {
+        if (mapY >= 0 && mapY < 20 && mapX >= 0 && mapX < 20) {
+            const idx = this.ceilingTiles[mapY][mapX];
+            if (idx !== undefined && this.ceiling[idx]) {
+                return this.ceiling[idx];
+            }
+        }
+        return null;
+    },
+    
+    getWallTexture(mapX, mapY) {
+        if (mapY >= 0 && mapY < 20 && mapX >= 0 && mapX < 20) {
+            const idx = this.wallTiles[mapY][mapX];
+            if (idx !== undefined && this.walls[idx]) {
+                return this.walls[idx];
+            }
+        }
+        return null;
+    },
+    
     checkLoaded(callback) {
         this.loadedTextures++;
-        console.log(`Загружено: ${this.loadedTextures}/${this.totalTextures}`);
         
         if (this.loadedTextures >= this.totalTextures) {
             this.loaded = true;
+            this.generateTileMaps();
             console.log('Все текстуры загружены!');
             if (callback) callback();
         }
-    },
-    
-    // Получить случайную текстуру для клетки
-    getRandomFloor() {
-        return this.floor[Math.floor(Math.random() * this.floor.length)];
-    },
-    
-    getRandomCeiling() {
-        return this.ceiling[Math.floor(Math.random() * this.ceiling.length)];
-    },
-    
-    getRandomWall() {
-        return this.walls[Math.floor(Math.random() * this.walls.length)];
     }
 };
