@@ -31,29 +31,30 @@ const FOV = Math.PI / 2.5;
 const MOVE_SPEED = 0.1;
 const TURN_SPEED = 0.1;
 
-// Карта: 0 - пусто, 1 - стена
 const map = [];
 for (let y = 0; y < MAP_H; y++) {
     map[y] = [];
     for (let x = 0; x < MAP_W; x++) {
-        map[y][x] = 1; // Всё стены
+        map[y][x] = 1;
     }
 }
 
-// Пустая комната 8x8 (от 1 до 8)
 for (let y = 1; y <= 8; y++) {
     for (let x = 1; x <= 8; x++) {
         map[y][x] = 0;
     }
 }
 
-// Постройки НА СТЕНАХ (не внутри, а на клетках стен)
+// Постройки ПЕРЕД стенами (не на карте, просто спрайты)
 const buildings = [
-    { x: 1, y: 4, icon: 'Квесты', name: 'Квесты' },
-    { x: 4, y: 1, icon: 'Арена', name: 'Арена' },
-    { x: 7, y: 4, icon: 'Рынок', name: 'Рынок' },
-    { x: 4, y: 7, icon: 'Таверна', name: 'Таверна' },
+    { x: 1.5, y: 4.5, icon: 'Квесты', name: 'Квесты' },
+    { x: 4.5, y: 1.5, icon: 'Арена', name: 'Арена' },
+    { x: 7.5, y: 4.5, icon: 'Рынок', name: 'Рынок' },
+    { x: 4.5, y: 7.5, icon: 'Таверна', name: 'Таверна' },
 ];
+
+// Дуб в центре (спрайт)
+const oak = { x: 4.5, y: 4.5 };
 
 const player = {
     x: 4.5,
@@ -152,29 +153,38 @@ function castRay(rayAngle) {
 function render() {
     const HORIZON = Math.floor(H * 0.35);
     
-    // Потолок
+    // Потолок с эффектом движения (сдвиг текстуры)
     if (Textures.loaded) {
         const ceilingTex = Textures.getCeilingTexture(Math.floor(player.x), Math.floor(player.y));
         if (ceilingTex) {
-            ctx.drawImage(ceilingTex, 0, 0, W, HORIZON);
+            const offsetX = Math.floor((player.x * 100) % ceilingTex.width);
+            const offsetY = Math.floor((player.y * 100) % ceilingTex.height);
+            
+            // Рисуем со сдвигом
+            ctx.drawImage(ceilingTex, offsetX, offsetY, ceilingTex.width, ceilingTex.height, 0, 0, W, HORIZON);
+            ctx.drawImage(ceilingTex, 0, 0, ceilingTex.width, ceilingTex.height, -offsetX, 0, W, HORIZON);
         }
     } else {
         ctx.fillStyle = '#0d0d0d';
         ctx.fillRect(0, 0, W, HORIZON);
     }
     
-    // Пол
+    // Пол с эффектом движения
     if (Textures.loaded) {
         const floorTex = Textures.getFloorTexture(Math.floor(player.x), Math.floor(player.y));
         if (floorTex) {
-            ctx.drawImage(floorTex, 0, HORIZON, W, H - HORIZON);
+            const offsetX = Math.floor((player.x * 100) % floorTex.width);
+            const offsetY = Math.floor((player.y * 100) % floorTex.height);
+            
+            ctx.drawImage(floorTex, offsetX, offsetY, floorTex.width, floorTex.height, 0, HORIZON, W, H - HORIZON);
+            ctx.drawImage(floorTex, 0, 0, floorTex.width, floorTex.height, -offsetX, HORIZON, W, H - HORIZON);
         }
     } else {
         ctx.fillStyle = '#2a2218';
         ctx.fillRect(0, HORIZON, W, H - HORIZON);
     }
     
-    // Стены (СПЛОШНЫЕ, без разрывов)
+    // Стены
     for (let x = 0; x < W; x++) {
         const cameraX = 2 * x / W - 1;
         const rayAngle = player.angle + Math.atan(cameraX * Math.tan(FOV / 2));
@@ -219,10 +229,36 @@ function render() {
         zBuffer[x] = distance;
     }
     
-    // Спрайты построек ПЕРЕД стенами
+    // Дуб
+    if (Textures.loaded && Textures.oak) {
+        const oakDist = Math.sqrt((oak.x - player.x) ** 2 + (oak.y - player.y) ** 2);
+        
+        if (oakDist > 0.5 && oakDist < 10) {
+            const oakAngle = Math.atan2(oak.y - player.y, oak.x - player.x) - player.angle;
+            let na = oakAngle;
+            while (na > Math.PI) na -= 2 * Math.PI;
+            while (na < -Math.PI) na += 2 * Math.PI;
+            
+            if (Math.abs(na) < FOV / 2 + 0.3) {
+                const screenX = W / 2 + Math.tan(na) * (W / 2) / Math.tan(FOV / 2);
+                
+                if (screenX >= 0 && screenX < W && oakDist < zBuffer[Math.floor(screenX)] + 0.5) {
+                    const oakSize = H / oakDist * 3;
+                    const sy = HORIZON + oakSize * 0.1;
+                    const sx = screenX - oakSize / 2;
+                    
+                    ctx.globalAlpha = 1;
+                    ctx.drawImage(Textures.oak, sx, sy, oakSize, oakSize * 0.8);
+                    ctx.globalAlpha = 1;
+                }
+            }
+        }
+    }
+    
+    // Спрайты построек
     for (const b of buildings) {
-        const dx = b.x + 0.5 - player.x;
-        const dy = b.y + 0.5 - player.y;
+        const dx = b.x - player.x;
+        const dy = b.y - player.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
         if (distance > 12) continue;
@@ -273,6 +309,11 @@ function canMoveTo(x, y) {
     
     if (mx < 0 || mx >= MAP_W || my < 0 || my >= MAP_H) return false;
     
+    // Нельзя в дуб
+    const oakDx = mx + 0.5 - oak.x;
+    const oakDy = my + 0.5 - oak.y;
+    if (Math.sqrt(oakDx * oakDx + oakDy * oakDy) < 1.5) return false;
+    
     return map[my][mx] === 0;
 }
 
@@ -312,12 +353,9 @@ function turnRight() {
 }
 
 function interact() {
-    const frontX = Math.round(player.x + Math.cos(player.angle));
-    const frontY = Math.round(player.y + Math.sin(player.angle));
-    
     for (const b of buildings) {
-        const dx = b.x + 0.5 - player.x;
-        const dy = b.y + 0.5 - player.y;
+        const dx = b.x - player.x;
+        const dy = b.y - player.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
         
         if (dist < 1.5) {
