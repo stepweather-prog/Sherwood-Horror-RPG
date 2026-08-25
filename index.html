@@ -45,7 +45,7 @@ for (let y = 1; y <= 8; y++) {
     }
 }
 
-// Постройки ПЕРЕД стенами (не на карте, просто спрайты)
+// Постройки ПЕРЕД стенами
 const buildings = [
     { x: 1.5, y: 4.5, icon: 'Квесты', name: 'Квесты' },
     { x: 4.5, y: 1.5, icon: 'Арена', name: 'Арена' },
@@ -53,7 +53,7 @@ const buildings = [
     { x: 4.5, y: 7.5, icon: 'Таверна', name: 'Таверна' },
 ];
 
-// Дуб в центре (спрайт)
+// Дуб в центре
 const oak = { x: 4.5, y: 4.5 };
 
 const player = {
@@ -153,38 +153,33 @@ function castRay(rayAngle) {
 function render() {
     const HORIZON = Math.floor(H * 0.35);
     
-    // Потолок с эффектом движения (сдвиг текстуры)
+    // Потолок (двигается при ходьбе)
     if (Textures.loaded) {
         const ceilingTex = Textures.getCeilingTexture(Math.floor(player.x), Math.floor(player.y));
         if (ceilingTex) {
-            const offsetX = Math.floor((player.x * 100) % ceilingTex.width);
-            const offsetY = Math.floor((player.y * 100) % ceilingTex.height);
-            
-            // Рисуем со сдвигом
-            ctx.drawImage(ceilingTex, offsetX, offsetY, ceilingTex.width, ceilingTex.height, 0, 0, W, HORIZON);
-            ctx.drawImage(ceilingTex, 0, 0, ceilingTex.width, ceilingTex.height, -offsetX, 0, W, HORIZON);
+            const shiftX = Math.floor(player.x * 200) % ceilingTex.width;
+            const shiftY = Math.floor(player.y * 200) % ceilingTex.height;
+            ctx.drawImage(ceilingTex, shiftX, shiftY, W, HORIZON, 0, 0, W, HORIZON);
         }
     } else {
         ctx.fillStyle = '#0d0d0d';
         ctx.fillRect(0, 0, W, HORIZON);
     }
     
-    // Пол с эффектом движения
+    // Пол (двигается при ходьбе)
     if (Textures.loaded) {
         const floorTex = Textures.getFloorTexture(Math.floor(player.x), Math.floor(player.y));
         if (floorTex) {
-            const offsetX = Math.floor((player.x * 100) % floorTex.width);
-            const offsetY = Math.floor((player.y * 100) % floorTex.height);
-            
-            ctx.drawImage(floorTex, offsetX, offsetY, floorTex.width, floorTex.height, 0, HORIZON, W, H - HORIZON);
-            ctx.drawImage(floorTex, 0, 0, floorTex.width, floorTex.height, -offsetX, HORIZON, W, H - HORIZON);
+            const shiftX = Math.floor(player.x * 200) % floorTex.width;
+            const shiftY = Math.floor(player.y * 200) % floorTex.height;
+            ctx.drawImage(floorTex, shiftX, shiftY, W, H - HORIZON, 0, HORIZON, W, H - HORIZON);
         }
     } else {
         ctx.fillStyle = '#2a2218';
         ctx.fillRect(0, HORIZON, W, H - HORIZON);
     }
     
-    // Стены
+    // Стены (рейкастинг)
     for (let x = 0; x < W; x++) {
         const cameraX = 2 * x / W - 1;
         const rayAngle = player.angle + Math.atan(cameraX * Math.tan(FOV / 2));
