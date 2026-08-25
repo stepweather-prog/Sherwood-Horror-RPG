@@ -35,7 +35,7 @@ const Textures = {
             this.checkLoaded(callback);
         });
         
-        // Стены - только первые 5
+        // Стены - 5 плиток
         for (let i = 1; i <= 5; i++) {
             this.loadImage(`assets/Sherwood_Square/wall_area_${i}.png`, (img) => {
                 this.walls.push(img);
@@ -90,7 +90,6 @@ const Textures = {
     generateTileMaps() {
         this.floorTiles = this.generateMap(6);
         this.ceilingTiles = this.generateMap(12);
-        // Стены - одна текстура для всего периметра (бесшовно)
         this.wallTiles = this.generateMap(5);
     },
     
@@ -126,7 +125,7 @@ const Textures = {
     },
     
     getWallTexture(mapX, mapY) {
-        // Для стен используем только первую текстуру (бесшовно)
+        // Всегда первая текстура для всех стен (бесшовно)
         if (this.walls.length > 0) {
             return this.walls[0];
         }
