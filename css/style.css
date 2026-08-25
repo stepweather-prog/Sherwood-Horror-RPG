@@ -1,0 +1,124 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { 
+    background: #000; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    height: 100vh; 
+    overflow: hidden; 
+}
+canvas { 
+    display: none;
+    image-rendering: pixelated; 
+}
+
+#loadingScreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    cursor: pointer;
+}
+
+#loadingScreen img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#playButton {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px;
+    height: 200px;
+    cursor: pointer;
+    transition: transform 0.3s;
+    background: none;
+    border: none;
+}
+
+#playButton:hover {
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+#playButton img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+#homeScreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    z-index: 500;
+    background: #000;
+}
+
+#videoBackground {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#leftStatue {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 30%;
+    height: 100%;
+    object-fit: contain;
+    z-index: 2;
+}
+
+#rightStatue {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 30%;
+    height: 100%;
+    object-fit: contain;
+    z-index: 2;
+}
+
+#arch {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60%;
+    height: 80%;
+    object-fit: contain;
+    z-index: 3;
+}
+
+#hero {
+    position: absolute;
+    top: 65%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20%;
+    height: 40%;
+    object-fit: contain;
+    z-index: 4;
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+
+#hero:hover {
+    transform: translate(-50%, -50%) scale(1.05);
+}
