@@ -16,7 +16,7 @@ const Textures = {
     load(callback) {
         // Пол - 6 плиток
         for (let i = 1; i <= 6; i++) {
-            this.loadImage(`assets/floor_area_${i}.png`, (img) => {
+            this.loadImage(`assets/Sherwood_Square/floor_area_${i}.png`, (img) => {
                 this.floor.push(img);
                 this.checkLoaded(callback);
             });
@@ -24,28 +24,28 @@ const Textures = {
         
         // Потолок - 11 обычных плиток
         for (let i = 1; i <= 11; i++) {
-            this.loadImage(`assets/ceiling_area_${i}.png`, (img) => {
+            this.loadImage(`assets/Sherwood_Square/ceiling_area_${i}.png`, (img) => {
                 this.ceiling.push(img);
                 this.checkLoaded(callback);
             });
         }
         
         // Потолок с луной (12-я плитка)
-        this.loadImage('assets/area_ceiling_moon.png', (img) => {
+        this.loadImage('assets/Sherwood_Square/area_ceiling_moon.png', (img) => {
             this.ceiling.push(img);
             this.checkLoaded(callback);
         });
         
         // Стены - 10 плиток
         for (let i = 1; i <= 10; i++) {
-            this.loadImage(`assets/wall_area_${i}.png`, (img) => {
+            this.loadImage(`assets/Sherwood_Square/wall_area_${i}.png`, (img) => {
                 this.walls.push(img);
                 this.checkLoaded(callback);
             });
         }
         
         // Дуб
-        this.loadImage('assets/oak_area.png', (img) => {
+        this.loadImage('assets/Sherwood_Square/oak_area.png', (img) => {
             this.oak = img;
             this.checkLoaded(callback);
         });
