@@ -39,14 +39,14 @@ for (let y = 0; y < MAP_H; y++) {
     }
 }
 
-// Квадратная площадь 14x14 (от 3 до 16)
-for (let y = 3; y <= 16; y++) {
-    for (let x = 3; x <= 16; x++) {
+// Квадратная площадь 12x12 (от 4 до 15)
+for (let y = 4; y <= 15; y++) {
+    for (let x = 4; x <= 15; x++) {
         map[y][x] = 0;
     }
 }
 
-// Периметр - лес
+// Периметр - сплошная стена
 for (let y = 3; y <= 16; y++) {
     for (let x = 3; x <= 16; x++) {
         if (y === 3 || y === 16 || x === 3 || x === 16) {
@@ -55,7 +55,7 @@ for (let y = 3; y <= 16; y++) {
     }
 }
 
-// Постройки на периметре (на клетках леса)
+// Постройки на периметре
 const buildings = [
     { x: 5, y: 3, icon: 'Чат', name: 'Чат' },
     { x: 7, y: 3, icon: 'Профиль', name: 'Профиль' },
@@ -77,7 +77,6 @@ for (const b of buildings) {
     map[b.y][b.x] = 3;
 }
 
-// Дуб - только спрайт (не в карте)
 const player = {
     x: 9.5,
     y: 14.5,
@@ -182,7 +181,7 @@ function render() {
         ctx.fillRect(0, 0, W, HORIZON);
     }
     
-    // Пол как плиты (без перспективы, ровные)
+    // Пол
     if (Textures.loaded) {
         const floorTex = Textures.getFloorTexture(Math.floor(player.x), Math.floor(player.y));
         if (floorTex) {
@@ -205,7 +204,6 @@ function render() {
         const drawStart = Math.max(0, HORIZON - lineHeight / 2);
         const drawEnd = Math.min(H, HORIZON + lineHeight / 2);
         
-        // Постройки - не рисуем как стены
         if (wallType === 3) {
             zBuffer[x] = distance;
             continue;
@@ -244,7 +242,7 @@ function render() {
         zBuffer[x] = distance;
     }
     
-    // Дуб - спрайт, утоплен в пол
+    // Дуб - спрайт (утоплен в пол, крупнее)
     if (Textures.loaded && Textures.oak) {
         const oakDistance = Math.sqrt((9.5 - player.x) ** 2 + (9.5 - player.y) ** 2);
         
@@ -258,13 +256,12 @@ function render() {
                 const screenX = W / 2 + Math.tan(na) * (W / 2) / Math.tan(FOV / 2);
                 
                 if (screenX >= 0 && screenX < W && oakDistance < zBuffer[Math.floor(screenX)] + 0.5) {
-                    const oakSize = H / oakDistance * 2;
-                    // Утапливаем дуб в пол (ниже горизонта)
-                    const sy = HORIZON - oakSize * 0.3;
+                    const oakSize = H / oakDistance * 4; // Вдвое крупнее
+                    const sy = HORIZON + oakSize * 0.2; // Утоплен в пол
                     const sx = screenX - oakSize / 2;
                     
                     ctx.globalAlpha = 1;
-                    ctx.drawImage(Textures.oak, sx, sy, oakSize, oakSize);
+                    ctx.drawImage(Textures.oak, sx, sy, oakSize, oakSize * 0.8);
                     ctx.globalAlpha = 1;
                 }
             }
@@ -392,7 +389,6 @@ function render() {
         }
     }
     
-    // Дуб на миникарте
     ctx.fillStyle = '#4a3a1a';
     ctx.fillRect(mx0 + 9 * ms, my0 + 9 * ms, ms * 2, ms * 2);
     
@@ -424,7 +420,7 @@ function canMoveTo(x, y) {
     // Запрещаем подходить к дубу
     const dx = mx + 0.5 - 9.5;
     const dy = my + 0.5 - 9.5;
-    if (Math.sqrt(dx * dx + dy * dy) < 1.5) return false;
+    if (Math.sqrt(dx * dx + dy * dy) < 1.8) return false;
     
     return map[my][mx] === 0;
 }
