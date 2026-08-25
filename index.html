@@ -28,8 +28,8 @@
 const MAP_W = 10;
 const MAP_H = 10;
 const FOV = Math.PI / 2.5;
-const MOVE_SPEED = 0.1;
-const TURN_SPEED = 0.1;
+const MOVE_SPEED = 0.08;
+const TURN_SPEED = 0.08;
 
 const map = [];
 for (let y = 0; y < MAP_H; y++) {
@@ -45,7 +45,6 @@ for (let y = 1; y <= 8; y++) {
     }
 }
 
-// Постройки ПЕРЕД стенами
 const buildings = [
     { x: 1.5, y: 4.5, icon: 'Квесты', name: 'Квесты' },
     { x: 4.5, y: 1.5, icon: 'Арена', name: 'Арена' },
@@ -53,7 +52,6 @@ const buildings = [
     { x: 4.5, y: 7.5, icon: 'Таверна', name: 'Таверна' },
 ];
 
-// Дуб в центре
 const oak = { x: 4.5, y: 4.5 };
 
 const player = {
@@ -157,8 +155,8 @@ function render() {
     if (Textures.loaded) {
         const ceilingTex = Textures.getCeilingTexture(Math.floor(player.x), Math.floor(player.y));
         if (ceilingTex) {
-            const shiftX = Math.floor(player.x * 200) % ceilingTex.width;
-            const shiftY = Math.floor(player.y * 200) % ceilingTex.height;
+            const shiftX = Math.floor(player.x * 100) % ceilingTex.width;
+            const shiftY = Math.floor(player.y * 100) % ceilingTex.height;
             ctx.drawImage(ceilingTex, shiftX, shiftY, W, HORIZON, 0, 0, W, HORIZON);
         }
     } else {
@@ -170,8 +168,8 @@ function render() {
     if (Textures.loaded) {
         const floorTex = Textures.getFloorTexture(Math.floor(player.x), Math.floor(player.y));
         if (floorTex) {
-            const shiftX = Math.floor(player.x * 200) % floorTex.width;
-            const shiftY = Math.floor(player.y * 200) % floorTex.height;
+            const shiftX = Math.floor(player.x * 100) % floorTex.width;
+            const shiftY = Math.floor(player.y * 100) % floorTex.height;
             ctx.drawImage(floorTex, shiftX, shiftY, W, H - HORIZON, 0, HORIZON, W, H - HORIZON);
         }
     } else {
@@ -179,7 +177,7 @@ function render() {
         ctx.fillRect(0, HORIZON, W, H - HORIZON);
     }
     
-    // Стены (рейкастинг)
+    // Стены
     for (let x = 0; x < W; x++) {
         const cameraX = 2 * x / W - 1;
         const rayAngle = player.angle + Math.atan(cameraX * Math.tan(FOV / 2));
@@ -304,7 +302,6 @@ function canMoveTo(x, y) {
     
     if (mx < 0 || mx >= MAP_W || my < 0 || my >= MAP_H) return false;
     
-    // Нельзя в дуб
     const oakDx = mx + 0.5 - oak.x;
     const oakDy = my + 0.5 - oak.y;
     if (Math.sqrt(oakDx * oakDx + oakDy * oakDy) < 1.5) return false;
