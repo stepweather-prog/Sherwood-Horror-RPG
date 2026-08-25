@@ -91,12 +91,21 @@ const player = {
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
-const W = 640;
-const H = 400;
-canvas.width = W;
-canvas.height = H;
 
-const zBuffer = new Float32Array(W);
+let W = window.innerWidth;
+let H = window.innerHeight;
+let zBuffer = new Float32Array(W);
+
+function resizeCanvas() {
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = W;
+    canvas.height = H;
+    zBuffer = new Float32Array(W);
+}
+
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
 
 function castRay(rayAngle) {
     const rayDirX = Math.cos(rayAngle);
