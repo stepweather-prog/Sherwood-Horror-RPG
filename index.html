@@ -30,7 +30,7 @@ const MAP_H = 20;
 const FOV = Math.PI / 2.5;
 const MOVE_SPEED = 0.15;
 
-// Карта: 0 - пусто, 1 - лес/стена, 3 - постройка (дуба в карте нет!)
+// Карта: 0 - пусто, 1 - лес/стена, 3 - постройка
 const map = [];
 for (let y = 0; y < MAP_H; y++) {
     map[y] = [];
@@ -39,72 +39,45 @@ for (let y = 0; y < MAP_H; y++) {
     }
 }
 
-// Круглая площадь
-const centerX = 9.5;
-const centerY = 9.5;
-const radius = 6.5;
+// Квадратная площадь 14x14 (от 3 до 16)
+for (let y = 3; y <= 16; y++) {
+    for (let x = 3; x <= 16; x++) {
+        map[y][x] = 0;
+    }
+}
 
-for (let y = 0; y < MAP_H; y++) {
-    for (let x = 0; x < MAP_W; x++) {
-        const dx = x + 0.5 - centerX;
-        const dy = y + 0.5 - centerY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        
-        if (dist <= radius) {
-            map[y][x] = 0;
+// Периметр - лес
+for (let y = 3; y <= 16; y++) {
+    for (let x = 3; x <= 16; x++) {
+        if (y === 3 || y === 16 || x === 3 || x === 16) {
+            map[y][x] = 1;
         }
     }
 }
 
-// Постройки расставляем на клетках леса (по кругу)
-const buildings = [];
-const buildingPositions = [
-    { angle: Math.PI * 0.75, name: 'Чат', icon: 'Чат' },
-    { angle: Math.PI * 0.5, name: 'Профиль', icon: 'Профиль' },
-    { angle: Math.PI * 0.25, name: 'Арена', icon: 'Арена' },
-    { angle: 0, name: 'Порталы', icon: 'Порталы' },
-    { angle: -Math.PI * 0.25, name: 'Таверна', icon: 'Таверна' },
-    { angle: -Math.PI * 0.5, name: 'Подземка', icon: 'Подземка' },
-    { angle: -Math.PI * 0.75, name: 'Кузница', icon: 'Кузница' },
-    { angle: Math.PI, name: 'Тренировка', icon: 'Тренировка' },
-    { angle: Math.PI * 1.25, name: 'Бестиарий', icon: 'Бестиарий' },
-    { angle: Math.PI * 1.5, name: 'Очаг', icon: 'Очаг' },
-    { angle: Math.PI * 1.75, name: 'Рынок', icon: 'Рынок' },
-    { angle: -Math.PI * 1.25, name: 'Трофейный зал', icon: 'Трофейный зал' },
-    { angle: -Math.PI * 1.5, name: 'Квесты', icon: 'Квесты' },
-    { angle: -Math.PI * 1.75, name: 'Рейд', icon: 'Рейд' },
+// Постройки на периметре (на клетках леса)
+const buildings = [
+    { x: 5, y: 3, icon: 'Чат', name: 'Чат' },
+    { x: 7, y: 3, icon: 'Профиль', name: 'Профиль' },
+    { x: 9, y: 3, icon: 'Арена', name: 'Арена' },
+    { x: 11, y: 3, icon: 'Порталы', name: 'Порталы' },
+    { x: 13, y: 3, icon: 'Таверна', name: 'Таверна' },
+    { x: 15, y: 5, icon: 'Подземка', name: 'Подземка' },
+    { x: 15, y: 7, icon: 'Кузница', name: 'Кузница' },
+    { x: 15, y: 9, icon: 'Тренировка', name: 'Тренировка' },
+    { x: 15, y: 11, icon: 'Бестиарий', name: 'Бестиарий' },
+    { x: 15, y: 13, icon: 'Очаг', name: 'Очаг' },
+    { x: 13, y: 15, icon: 'Рынок', name: 'Рынок' },
+    { x: 11, y: 15, icon: 'Трофейный зал', name: 'Трофейный зал' },
+    { x: 9, y: 15, icon: 'Квесты', name: 'Квесты' },
+    { x: 7, y: 15, icon: 'Рейд', name: 'Рейд' },
 ];
 
-for (const bp of buildingPositions) {
-    const bx = Math.round(centerX + Math.cos(bp.angle) * radius);
-    const by = Math.round(centerY + Math.sin(bp.angle) * radius);
-    
-    // Ищем ближайшую клетку леса
-    let bestCell = null;
-    let bestDist = Infinity;
-    
-    for (let dy = -2; dy <= 2; dy++) {
-        for (let dx = -2; dx <= 2; dx++) {
-            const nx = bx + dx;
-            const ny = by + dy;
-            if (nx >= 0 && nx < MAP_W && ny >= 0 && ny < MAP_H && map[ny][nx] === 1) {
-                const d = Math.abs(dx) + Math.abs(dy);
-                if (d < bestDist) {
-                    bestDist = d;
-                    bestCell = { x: nx, y: ny };
-                }
-            }
-        }
-    }
-    
-    if (bestCell) {
-        map[bestCell.y][bestCell.x] = 3;
-        buildings.push({ x: bestCell.x, y: bestCell.y, icon: bp.icon, name: bp.name });
-    }
+for (const b of buildings) {
+    map[b.y][b.x] = 3;
 }
 
-// Дуб - только спрайт, в карте его нет
-
+// Дуб - только спрайт (не в карте)
 const player = {
     x: 9.5,
     y: 14.5,
@@ -209,24 +182,11 @@ function render() {
         ctx.fillRect(0, 0, W, HORIZON);
     }
     
-    // Пол с перспективой
+    // Пол как плиты (без перспективы, ровные)
     if (Textures.loaded) {
         const floorTex = Textures.getFloorTexture(Math.floor(player.x), Math.floor(player.y));
         if (floorTex) {
-            for (let y = HORIZON; y < H; y++) {
-                const rowDistance = (H / 2) / (y - HORIZON + 1);
-                const fog = Math.max(0.15, 1 - rowDistance / 15);
-                
-                ctx.globalAlpha = 1;
-                ctx.drawImage(
-                    floorTex,
-                    0, Math.floor((y - HORIZON) * 4) % 1024, 1024, 1,
-                    0, y, W, 1
-                );
-                
-                ctx.fillStyle = `rgba(0,0,0,${1 - fog})`;
-                ctx.fillRect(0, y, W, 1);
-            }
+            ctx.drawImage(floorTex, 0, HORIZON, W, H - HORIZON);
         }
     } else {
         ctx.fillStyle = '#2a2218';
@@ -284,7 +244,7 @@ function render() {
         zBuffer[x] = distance;
     }
     
-    // Дуб - спрайт (отдельно от карты)
+    // Дуб - спрайт, утоплен в пол
     if (Textures.loaded && Textures.oak) {
         const oakDistance = Math.sqrt((9.5 - player.x) ** 2 + (9.5 - player.y) ** 2);
         
@@ -298,12 +258,13 @@ function render() {
                 const screenX = W / 2 + Math.tan(na) * (W / 2) / Math.tan(FOV / 2);
                 
                 if (screenX >= 0 && screenX < W && oakDistance < zBuffer[Math.floor(screenX)] + 0.5) {
-                    const oakSize = H / oakDistance * 2.5;
-                    const sy = HORIZON - oakSize / 2;
+                    const oakSize = H / oakDistance * 2;
+                    // Утапливаем дуб в пол (ниже горизонта)
+                    const sy = HORIZON - oakSize * 0.3;
                     const sx = screenX - oakSize / 2;
                     
                     ctx.globalAlpha = 1;
-                    ctx.drawImage(Textures.oak, sx, sy, oakSize, oakSize * 1.3);
+                    ctx.drawImage(Textures.oak, sx, sy, oakSize, oakSize);
                     ctx.globalAlpha = 1;
                 }
             }
@@ -458,8 +419,9 @@ function canMoveTo(x, y) {
     const my = Math.floor(y);
     
     if (mx < 0 || mx >= MAP_W || my < 0 || my >= MAP_H) return false;
+    if (mx <= 3 || mx >= 16 || my <= 3 || my >= 16) return false;
     
-    // Запрещаем подходить к дубу (центр)
+    // Запрещаем подходить к дубу
     const dx = mx + 0.5 - 9.5;
     const dy = my + 0.5 - 9.5;
     if (Math.sqrt(dx * dx + dy * dy) < 1.5) return false;
