@@ -22,7 +22,7 @@ const Textures = {
             });
         }
         
-        // Потолок - 11 обычных плиток
+        // Потолок - 11 обычных + луна
         for (let i = 1; i <= 11; i++) {
             this.loadImage(`assets/Sherwood_Square/ceiling_area_${i}.png`, (img) => {
                 this.ceiling.push(img);
@@ -30,14 +30,13 @@ const Textures = {
             });
         }
         
-        // Потолок с луной (12-я плитка)
         this.loadImage('assets/Sherwood_Square/area_ceiling_moon.png', (img) => {
             this.ceiling.push(img);
             this.checkLoaded(callback);
         });
         
-        // Стены - 10 плиток
-        for (let i = 1; i <= 10; i++) {
+        // Стены - только первые 5
+        for (let i = 1; i <= 5; i++) {
             this.loadImage(`assets/Sherwood_Square/wall_area_${i}.png`, (img) => {
                 this.walls.push(img);
                 this.checkLoaded(callback);
@@ -68,7 +67,7 @@ const Textures = {
             'Рейд': 'raid.png',
         };
         
-        this.totalTextures = 6 + 12 + 10 + 1 + Object.keys(buildingIcons).length;
+        this.totalTextures = 6 + 12 + 5 + 1 + Object.keys(buildingIcons).length;
         
         for (const [name, file] of Object.entries(buildingIcons)) {
             this.loadImage(`assets/icons/${file}`, (img) => {
@@ -91,7 +90,8 @@ const Textures = {
     generateTileMaps() {
         this.floorTiles = this.generateMap(6);
         this.ceilingTiles = this.generateMap(12);
-        this.wallTiles = this.generateMap(10);
+        // Стены - одна текстура для всего периметра (бесшовно)
+        this.wallTiles = this.generateMap(5);
     },
     
     generateMap(textureCount) {
@@ -126,11 +126,9 @@ const Textures = {
     },
     
     getWallTexture(mapX, mapY) {
-        if (mapY >= 0 && mapY < 20 && mapX >= 0 && mapX < 20) {
-            const idx = this.wallTiles[mapY][mapX];
-            if (idx !== undefined && this.walls[idx]) {
-                return this.walls[idx];
-            }
+        // Для стен используем только первую текстуру (бесшовно)
+        if (this.walls.length > 0) {
+            return this.walls[0];
         }
         return null;
     },
