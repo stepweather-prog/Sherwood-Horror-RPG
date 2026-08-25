@@ -29,7 +29,7 @@ const MAP_W = 20;
 const MAP_H = 20;
 const FOV = Math.PI / 2.5;
 const MOVE_SPEED = 0.1;
-const TURN_SPEED = 0.1; // Скорость плавного поворота
+const TURN_SPEED = 0.1;
 
 const map = [];
 for (let y = 0; y < MAP_H; y++) {
@@ -39,17 +39,17 @@ for (let y = 0; y < MAP_H; y++) {
     }
 }
 
-// Квадратная площадь 12x12 (от 4 до 15)
-for (let y = 4; y <= 15; y++) {
-    for (let x = 4; x <= 15; x++) {
+// Площадь 10x10 (от 5 до 14) - меньше
+for (let y = 5; y <= 14; y++) {
+    for (let x = 5; x <= 14; x++) {
         map[y][x] = 0;
     }
 }
 
-// Периметр - сплошная стена (без разрывов)
-for (let y = 3; y <= 16; y++) {
-    for (let x = 3; x <= 16; x++) {
-        if (y === 3 || y === 16 || x === 3 || x === 16) {
+// Периметр - сплошная стена
+for (let y = 4; y <= 15; y++) {
+    for (let x = 4; x <= 15; x++) {
+        if (y === 4 || y === 15 || x === 4 || x === 15) {
             map[y][x] = 1;
         }
     }
@@ -57,20 +57,20 @@ for (let y = 3; y <= 16; y++) {
 
 // Постройки на периметре
 const buildings = [
-    { x: 5, y: 3, icon: 'Чат', name: 'Чат' },
-    { x: 7, y: 3, icon: 'Профиль', name: 'Профиль' },
-    { x: 9, y: 3, icon: 'Арена', name: 'Арена' },
-    { x: 11, y: 3, icon: 'Порталы', name: 'Порталы' },
-    { x: 13, y: 3, icon: 'Таверна', name: 'Таверна' },
-    { x: 15, y: 5, icon: 'Подземка', name: 'Подземка' },
-    { x: 15, y: 7, icon: 'Кузница', name: 'Кузница' },
-    { x: 15, y: 9, icon: 'Тренировка', name: 'Тренировка' },
-    { x: 15, y: 11, icon: 'Бестиарий', name: 'Бестиарий' },
-    { x: 15, y: 13, icon: 'Очаг', name: 'Очаг' },
-    { x: 13, y: 15, icon: 'Рынок', name: 'Рынок' },
-    { x: 11, y: 15, icon: 'Трофейный зал', name: 'Трофейный зал' },
-    { x: 9, y: 15, icon: 'Квесты', name: 'Квесты' },
-    { x: 7, y: 15, icon: 'Рейд', name: 'Рейд' },
+    { x: 6, y: 4, icon: 'Чат', name: 'Чат' },
+    { x: 7, y: 4, icon: 'Профиль', name: 'Профиль' },
+    { x: 9, y: 4, icon: 'Арена', name: 'Арена' },
+    { x: 11, y: 4, icon: 'Порталы', name: 'Порталы' },
+    { x: 12, y: 4, icon: 'Таверна', name: 'Таверна' },
+    { x: 14, y: 6, icon: 'Подземка', name: 'Подземка' },
+    { x: 14, y: 8, icon: 'Кузница', name: 'Кузница' },
+    { x: 14, y: 10, icon: 'Тренировка', name: 'Тренировка' },
+    { x: 14, y: 12, icon: 'Бестиарий', name: 'Бестиарий' },
+    { x: 12, y: 14, icon: 'Очаг', name: 'Очаг' },
+    { x: 11, y: 14, icon: 'Рынок', name: 'Рынок' },
+    { x: 9, y: 14, icon: 'Трофейный зал', name: 'Трофейный зал' },
+    { x: 7, y: 14, icon: 'Квесты', name: 'Квесты' },
+    { x: 6, y: 14, icon: 'Рейд', name: 'Рейд' },
 ];
 
 for (const b of buildings) {
@@ -80,15 +80,17 @@ for (const b of buildings) {
 // Игрок спавнится с юга, дуб в центре (9.5, 9.5)
 const player = {
     x: 9.5,
-    y: 14.5,
+    y: 13.5,
     angle: -Math.PI / 2,
     moving: false,
     turning: false,
-    turnTarget: null,
+    turnFrom: -Math.PI / 2,
+    turnTarget: -Math.PI / 2,
+    turnProgress: 0,
     moveFromX: 9.5,
-    moveFromY: 14.5,
+    moveFromY: 13.5,
     targetX: 9.5,
-    targetY: 14.5,
+    targetY: 13.5,
     moveProgress: 0,
 };
 
@@ -224,12 +226,12 @@ function render() {
                 }
                 wallX -= Math.floor(wallX);
                 
-                const texX = Math.floor(wallX * 1024);
+                const texX = Math.floor(wallX * wallTex.width) % wallTex.width;
                 
                 ctx.globalAlpha = 1;
                 ctx.drawImage(
                     wallTex,
-                    texX, 0, 1, 1024,
+                    texX, 0, 1, wallTex.height,
                     x, drawStart, 1, drawEnd - drawStart
                 );
                 
@@ -277,7 +279,7 @@ function render() {
         const dy = b.y + 0.5 - player.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
-        if (distance > 15) continue;
+        if (distance > 12) continue;
         
         const angle = Math.atan2(dy, dx) - player.angle;
         let na = angle;
@@ -357,7 +359,7 @@ function render() {
     }
     
     // Миникарта
-    const ms = 3;
+    const ms = 4;
     const mx0 = W - MAP_W * ms - 10;
     const my0 = 10;
     
@@ -402,7 +404,7 @@ function canMoveTo(x, y) {
     const my = Math.floor(y);
     
     if (mx < 0 || mx >= MAP_W || my < 0 || my >= MAP_H) return false;
-    if (mx <= 3 || mx >= 16 || my <= 3 || my >= 16) return false;
+    if (mx <= 4 || mx >= 15 || my <= 4 || my >= 15) return false;
     
     // Запрещаем подходить к дубу
     const dx = mx + 0.5 - 9.5;
@@ -461,7 +463,6 @@ function interact() {
 }
 
 function update() {
-    // Плавный поворот
     if (player.turning) {
         player.turnProgress += TURN_SPEED;
         
@@ -476,7 +477,6 @@ function update() {
         }
     }
     
-    // Плавное движение
     if (player.moving) {
         player.moveProgress += MOVE_SPEED;
         
