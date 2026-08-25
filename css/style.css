@@ -24,12 +24,15 @@ canvas {
     align-items: center;
     z-index: 1000;
     cursor: pointer;
+    overflow: hidden;
 }
 
 #loadingScreen img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain; /* Не растягивает, сохраняет пропорции */
+    object-position: center;
+    background: #000; /* Чёрные полосы если пропорции не совпадают */
 }
 
 #playButton {
@@ -72,7 +75,7 @@ canvas {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 40%; /* Видео между статуями */
+    width: 40%;
     height: 100%;
     object-fit: cover;
     z-index: 1;
@@ -84,7 +87,7 @@ canvas {
     top: 0;
     width: 30%;
     height: 100%;
-    object-fit: cover; /* Чтобы касались краёв */
+    object-fit: cover;
     z-index: 2;
 }
 
@@ -100,10 +103,10 @@ canvas {
 
 #arch {
     position: absolute;
-    bottom: 0; /* Арка касается низа */
+    bottom: 0;
     left: 50%;
     transform: translateX(-50%);
-    width: 40%; /* Арка между статуями */
+    width: 40%;
     height: auto;
     object-fit: contain;
     z-index: 3;
@@ -111,7 +114,7 @@ canvas {
 
 #hero {
     position: absolute;
-    bottom: 5%; /* Герой на ступенях арки */
+    bottom: 5%;
     left: 50%;
     transform: translateX(-50%);
     width: 15%;
