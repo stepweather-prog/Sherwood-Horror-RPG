@@ -31,7 +31,7 @@ const FOV = Math.PI / 2.5;
 const MOVE_SPEED = 0.1;
 const TURN_SPEED = 0.1;
 
-// Карта: 0 - пусто, 1 - стена, 3 - постройка
+// Карта: 0 - пусто, 1 - стена
 const map = [];
 for (let y = 0; y < MAP_H; y++) {
     map[y] = [];
@@ -47,17 +47,13 @@ for (let y = 1; y <= 8; y++) {
     }
 }
 
-// Постройки по углам
+// Постройки НА СТЕНАХ (не внутри, а на клетках стен)
 const buildings = [
     { x: 1, y: 4, icon: 'Квесты', name: 'Квесты' },
     { x: 4, y: 1, icon: 'Арена', name: 'Арена' },
     { x: 7, y: 4, icon: 'Рынок', name: 'Рынок' },
     { x: 4, y: 7, icon: 'Таверна', name: 'Таверна' },
 ];
-
-for (const b of buildings) {
-    map[b.y][b.x] = 3;
-}
 
 const player = {
     x: 4.5,
@@ -178,7 +174,7 @@ function render() {
         ctx.fillRect(0, HORIZON, W, H - HORIZON);
     }
     
-    // Стены
+    // Стены (СПЛОШНЫЕ, без разрывов)
     for (let x = 0; x < W; x++) {
         const cameraX = 2 * x / W - 1;
         const rayAngle = player.angle + Math.atan(cameraX * Math.tan(FOV / 2));
@@ -189,11 +185,6 @@ function render() {
         const lineHeight = Math.floor(H / distance);
         const drawStart = Math.max(0, HORIZON - lineHeight / 2);
         const drawEnd = Math.min(H, HORIZON + lineHeight / 2);
-        
-        if (wallType === 3) {
-            zBuffer[x] = distance;
-            continue;
-        }
         
         if (Textures.loaded && wallType !== 0) {
             const wallTex = Textures.getWallTexture(result.mapX, result.mapY);
@@ -228,7 +219,7 @@ function render() {
         zBuffer[x] = distance;
     }
     
-    // Спрайты построек
+    // Спрайты построек ПЕРЕД стенами
     for (const b of buildings) {
         const dx = b.x + 0.5 - player.x;
         const dy = b.y + 0.5 - player.y;
@@ -246,9 +237,9 @@ function render() {
         const screenX = W / 2 + Math.tan(na) * (W / 2) / Math.tan(FOV / 2);
         if (screenX < 0 || screenX >= W) continue;
         
-        if (distance > zBuffer[Math.floor(screenX)] + 0.5) continue;
+        if (distance > zBuffer[Math.floor(screenX)] + 0.3) continue;
         
-        const size = H / distance * 0.7;
+        const size = H / distance * 0.6;
         if (size < 15) continue;
         
         const sy = HORIZON - size / 2;
@@ -324,9 +315,12 @@ function interact() {
     const frontX = Math.round(player.x + Math.cos(player.angle));
     const frontY = Math.round(player.y + Math.sin(player.angle));
     
-    if (map[frontY] && map[frontY][frontX] === 3) {
-        const b = buildings.find(b => b.x === frontX && b.y === frontY);
-        if (b) {
+    for (const b of buildings) {
+        const dx = b.x + 0.5 - player.x;
+        const dy = b.y + 0.5 - player.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist < 1.5) {
             alert('Вход в: ' + b.name);
             return;
         }
