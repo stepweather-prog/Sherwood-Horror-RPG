@@ -64,15 +64,18 @@ canvas {
     display: none;
     z-index: 500;
     background: #000;
+    overflow: hidden;
 }
 
 #videoBackground {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40%; /* Видео между статуями */
     height: 100%;
     object-fit: cover;
+    z-index: 1;
 }
 
 #leftStatue {
@@ -81,7 +84,7 @@ canvas {
     top: 0;
     width: 30%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover; /* Чтобы касались краёв */
     z-index: 2;
 }
 
@@ -91,28 +94,28 @@ canvas {
     top: 0;
     width: 30%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
     z-index: 2;
 }
 
 #arch {
     position: absolute;
-    top: 50%;
+    bottom: 0; /* Арка касается низа */
     left: 50%;
-    transform: translate(-50%, -50%);
-    width: 60%;
-    height: 80%;
+    transform: translateX(-50%);
+    width: 40%; /* Арка между статуями */
+    height: auto;
     object-fit: contain;
     z-index: 3;
 }
 
 #hero {
     position: absolute;
-    top: 65%;
+    bottom: 5%; /* Герой на ступенях арки */
     left: 50%;
-    transform: translate(-50%, -50%);
-    width: 20%;
-    height: 40%;
+    transform: translateX(-50%);
+    width: 15%;
+    height: auto;
     object-fit: contain;
     z-index: 4;
     cursor: pointer;
@@ -120,5 +123,5 @@ canvas {
 }
 
 #hero:hover {
-    transform: translate(-50%, -50%) scale(1.05);
+    transform: translateX(-50%) scale(1.05);
 }
