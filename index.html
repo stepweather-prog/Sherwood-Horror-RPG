@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Sherwood Horror RPG</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            background: #0a0a0a; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            overflow: hidden; 
+        }
+        canvas { 
+            display: block; 
+            image-rendering: pixelated; 
+        }
+    </style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<script src="js/textures.js"></script>
+<script>
+const MAP_W = 20;
+const MAP_H = 20;
+const FOV = Math.PI / 2.5;
+const MOVE_SPEED = 0.2;
+
+const map = [];
+for (let y = 0; y < MAP_H; y++) {
+    map[y] = [];
+    for (let x = 0; x < MAP_W; x++) {
+        map[y][x] = 1;
+    }
+}
+
+for (let y = 4; y <= 15; y++) {
+    for (let x = 4; x <= 15; x++) {
+        map[y][x] = 0;
+    }
+}
+
+for (let y = 3; y <= 16; y++) {
+    for (let x = 3; x <= 16; x++) {
+        if (y === 3 || y === 16 || x === 3 || x === 16) {
+            map[y][x] = 1;
+        }
+    }
+}
+
+const buildings = [
+    { x: 5, y: 3, icon: 'Чат', name: 'Чат' },
+    { x: 7, y: 3, icon: 'Профиль', name: 'Профиль' },
+    { x: 9, y: 3, icon: 'Арена', name: 'Арена' },
+    { x: 11, y: 3, icon: 'Порталы', name: 'Порталы' },
+    { x: 13, y: 3, icon: 'Таверна', name: 'Таверна' },
+    { x: 15, y: 5, icon: 'Подземка', name: 'Подземка' },
+    { x: 15, y: 7, icon: 'Кузница', name: 'Кузница' },
+    { x: 15, y: 9, icon: 'Тренировка', name: 'Тренировка' },
+    { x: 15, y: 11, icon: 'Бестиарий', name: 'Бестиарий' },
+    { x: 15, y: 13, icon: 'Очаг', name: 'Очаг' },
+    { x: 13, y: 15, icon: 'Рынок', name: 'Рынок' },
+    { x: 11, y: 15, icon: 'Трофейный зал', name: 'Трофейный зал' },
+    { x: 9, y: 15, icon: 'Квесты', name: 'Квесты' },
+    { x: 7, y: 15, icon: 'Рейд', name: 'Рейд' },
+];
+
+for (const b of buildings) {
+    map[b.y][b.x] = 3;
+}
+
+map[9][9] = 2;
+map[9][10] = 2;
+map[10][9] = 2;
+map[10][10] = 2;
+
+const player = {
+    x: 9.5,
+    y: 14.5,
+    angle: -Math.PI / 2,
+    moving: false,
+    moveFromX: 9.5,
+    moveFromY: 14.5,
+    targetX: 9.5,
+    targetY: 14.5,
+    moveProgress: 0,
+};
+
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const W = 640;
+const H = 400;
+canvas.width = W;
+canvas.height = H;
+
+const zBuffer = new Float32Array(W);
+
+function castRay(rayAngle) {
+    const rayDirX = Math.cos(rayAngle);
+    const rayDirY = Math.sin(rayAngle);
+    
+    let mapX = Math.floor(player.x);
+    let mapY = Math.floor(player.y);
+    
+    const deltaDistX = Math.abs(1 / rayDirX);
+    const deltaDistY = Math.abs(1 / rayDirY);
+    
+    let stepX, stepY, sideDistX, sideDistY;
+    
+    if (rayDirX < 0) {
+        stepX = -1;
+        sideDistX = (player.x - mapX) * deltaDistX;
+    } else {
+        stepX = 1;
+        sideDistX = (mapX + 1 - player.x) * deltaDistX;
+    }
+    
+    if (rayDirY < 0) {
+        stepY = -1;
+        sideDistY = (player.y - mapY) * deltaDistY;
+    } else {
+        stepY = 1;
+        sideDistY = (mapY + 1 - player.y) * deltaDistY;
+    }
+    
+    let side = 0;
+    let hit = false;
+    let distance = 0;
+    let wallType = 0;
+    
+    while (!hit && distance < 20) {
+        if (sideDistX < sideDistY) {
+            sideDistX += deltaDistX;
+            mapX += stepX;
+            side = 0;
+        } else {
+            sideDistY += deltaDistY;
+            mapY += stepY;
+            side = 1;
+        }
+        
+        if (mapY >= 0 && mapY < MAP_H && mapX >= 0 && mapX < MAP_W) {
+            if (map[mapY][mapX] !== 0) {
+                hit = true;
+                wallType = map[mapY][mapX];
+                distance = side === 0 ? sideDistX - deltaDistX : sideDistY - deltaDistY;
+            }
+        } else {
+            hit = true;
+            wallType = 1;
+            distance = side === 0 ? sideDistX - deltaDistX : sideDistY - deltaDistY;
+        }
+    }
+    
+    return { distance, side, wallType, mapX, mapY };
+}
+
+function render() {
+    // Потолок
+    if (Textures.loaded) {
+        const mapX = Math.floor(player.x);
+        const mapY = Math.floor(player.y);
+        const ceilingTex = Textures.getCeilingTexture(mapX, mapY);
+        if (ceilingTex) {
+            ctx.drawImage(ceilingTex, 0, 0, W, H/2);
+        }
+    } else {
+        ctx.fillStyle = '#0d0d0d';
+        ctx.fillRect(0, 0, W, H/2);
+    }
+    
+    // Пол
+    if (Textures.loaded) {
+        const mapX = Math.floor(player.x);
+        const mapY = Math.floor(player.y);
+        const floorTex = Textures.getFloorTexture(mapX, mapY);
+        if (floorTex) {
+            ctx.drawImage(floorTex, 0, H/2, W, H/2);
+        }
+    } else {
+        ctx.fillStyle = '#2a2218';
+        ctx.fillRect(0, H/2, W, H/2);
+    }
+    
+    // Стены
+    for (let x = 0; x < W; x++) {
+        const cameraX = 2 * x / W - 1;
+        const rayAngle = player.angle + Math.atan(cameraX * Math.tan(FOV / 2));
+        
+        const result = castRay(rayAngle);
+        const { distance, side, wallType } = result;
+        
+        const lineHeight = Math.floor(H / distance);
+        const drawStart = Math.max(0, (H - lineHeight) / 2);
+        const drawEnd = Math.min(H, (H + lineHeight) / 2);
+        
+        if (Textures.loaded && wallType !== 0) {
+            const wallTex = Textures.getWallTexture(result.mapX, result.mapY);
+            
+            if (wallTex) {
+                let wallX;
+                if (side === 0) {
+                    wallX = player.y + distance * Math.sin(rayAngle);
+                } else {
+                    wallX = player.x + distance * Math.cos(rayAngle);
+                }
+                wallX -= Math.floor(wallX);
+                
+                const texX = Math.floor(wallX * 1024);
+                const fog = Math.max(0.15, 1 - distance / 15);
+                
+                ctx.globalAlpha = fog;
+                ctx.drawImage(
+                    wallTex,
+                    texX, 0, 1, 1024,
+                    x, drawStart, 1, drawEnd - drawStart
+                );
+                ctx.globalAlpha = 1;
+            }
+        } else {
+            ctx.fillStyle = wallType === 2 ? '#3a2a1a' : '#1a2a1a';
+            ctx.fillRect(x, drawStart, 1, drawEnd - drawStart);
+        }
+        
+        zBuffer[x] = distance;
+    }
+    
+    // Спрайты
+    const sprites = [];
+    for (const b of buildings) {
+        sprites.push({ 
+            x: b.x + 0.5, 
+            y: b.y + 0.5, 
+            type: 'building',
+            building: b
+        });
+    }
+    sprites.push({ x: 9.5, y: 9.5, type: 'oak' });
+    
+    sprites.sort((a, b) => {
+        const da = Math.sqrt((a.x - player.x) ** 2 + (a.y - player.y) ** 2);
+        const db = Math.sqrt((b.x - player.x) ** 2 + (b.y - player.y) ** 2);
+        return db - da;
+    });
+    
+    for (const sprite of sprites) {
+        const dx = sprite.x - player.x;
+        const dy = sprite.y - player.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance > 12) continue;
+        
+        const angle = Math.atan2(dy, dx) - player.angle;
+        let na = angle;
+        while (na > Math.PI) na -= 2 * Math.PI;
+        while (na < -Math.PI) na += 2 * Math.PI;
+        
+        if (Math.abs(na) > FOV / 2 + 0.2) continue;
+        
+        const screenX = W / 2 + Math.tan(na) * (W / 2) / Math.tan(FOV / 2);
+        if (screenX < 0 || screenX >= W) continue;
+        
+        if (distance > zBuffer[Math.floor(screenX)] + 0.3) continue;
+        
+        const size = sprite.type === 'oak' ? H / distance * 1.5 : H / distance * 0.8;
+        if (size < 15) continue;
+        
+        const sy = H / 2 - size / 2;
+        const sx = screenX - size / 2;
+        
+        if (sprite.type === 'oak' && Textures.oak) {
+            ctx.globalAlpha = Math.max(0.3, 1 - distance / 10);
+            ctx.drawImage(Textures.oak, sx, sy, size, size * 1.2);
+            ctx.globalAlpha = 1;
+        } else if (sprite.type === 'building' && Textures.buildings[sprite.building.icon]) {
+            const fog = Math.max(0.3, 1 - distance / 10);
+            ctx.globalAlpha = fog;
+            ctx.drawImage(Textures.buildings[sprite.building.icon], sx, sy, size, size);
+            ctx.globalAlpha = 1;
+            
+            if (distance < 2.5) {
+                ctx.fillStyle = '#e8d8c0';
+                ctx.font = 'bold 12px "Times New Roman", serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(sprite.building.name, screenX, sy - 10);
+                
+                ctx.fillStyle = '#8a6a3a';
+                ctx.font = '10px "Times New Roman", serif';
+                ctx.fillText('[E] Войти', screenX, sy - 26);
+            }
+        }
+    }
+    
+    // Индикаторы
+    for (const b of buildings) {
+        const dx = b.x + 0.5 - player.x;
+        const dy = b.y + 0.5 - player.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance < 3.5 && distance > 0.5) {
+            const angle = Math.atan2(dy, dx) - player.angle;
+            let na = angle;
+            while (na > Math.PI) na -= 2 * Math.PI;
+            while (na < -Math.PI) na += 2 * Math.PI;
+            
+            let ix, iy = H / 2, dir;
+            
+            if (Math.abs(na) < 0.4) {
+                ix = W / 2;
+                dir = '↑';
+            } else if (na > 0) {
+                ix = W - 60;
+                dir = '→';
+            } else {
+                ix = 60;
+                dir = '←';
+            }
+            
+            if (Math.abs(na) > Math.PI * 0.7) {
+                dir = '↓';
+                ix = W / 2;
+                iy = H - 40;
+            }
+            
+            ctx.fillStyle = 'rgba(0,0,0,0.8)';
+            ctx.fillRect(ix - 50, iy - 22, 100, 40);
+            ctx.strokeStyle = '#8a6a3a';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(ix - 50, iy - 22, 100, 40);
+            
+            ctx.fillStyle = '#e8d8c0';
+            ctx.font = '11px "Times New Roman", serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(dir + ' ' + b.name, ix, iy);
+        }
+    }
+    
+    // Миникарта
+    const ms = 3;
+    const mx0 = W - MAP_W * ms - 10;
+    const my0 = 10;
+    
+    ctx.fillStyle = 'rgba(0,0,0,0.8)';
+    ctx.fillRect(mx0, my0, MAP_W * ms, MAP_H * ms);
+    
+    for (let y = 0; y < MAP_H; y++) {
+        for (let x = 0; x < MAP_W; x++) {
+            if (map[y][x] === 1) {
+                ctx.fillStyle = '#1a2a1a';
+                ctx.fillRect(mx0 + x * ms, my0 + y * ms, ms, ms);
+            } else if (map[y][x] === 2) {
+                ctx.fillStyle = '#3a2a1a';
+                ctx.fillRect(mx0 + x * ms, my0 + y * ms, ms, ms);
+            } else if (map[y][x] === 3) {
+                ctx.fillStyle = '#6a5a3a';
+                ctx.fillRect(mx0 + x * ms, my0 + y * ms, ms, ms);
+            }
+        }
+    }
+    
+    ctx.fillStyle = '#c8b090';
+    ctx.fillRect(mx0 + player.x * ms - 1, my0 + player.y * ms - 1, 3, 3);
+    
+    ctx.strokeStyle = '#c8b090';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(mx0 + player.x * ms, my0 + player.y * ms);
+    ctx.lineTo(mx0 + (player.x + Math.cos(player.angle) * 2) * ms, my0 + (player.y + Math.sin(player.angle) * 2) * ms);
+    ctx.stroke();
+    
+    const v = ctx.createRadialGradient(W/2, H/2, H/4, W/2, H/2, H * 0.75);
+    v.addColorStop(0, 'rgba(0,0,0,0)');
+    v.addColorStop(1, 'rgba(0,0,0,0.6)');
+    ctx.fillStyle = v;
+    ctx.fillRect(0, 0, W, H);
+}
+
+function canMoveTo(x, y) {
+    const mx = Math.floor(x);
+    const my = Math.floor(y);
+    
+    if (mx < 0 || mx >= MAP_W || my < 0 || my >= MAP_H) return false;
+    if (mx <= 3 || mx >= 16 || my <= 3 || my >= 16) return false;
+    
+    return map[my][mx] === 0;
+}
+
+function stepForward() {
+    if (player.moving) return;
+    
+    const newX = player.x + Math.cos(player.angle);
+    const newY = player.y + Math.sin(player.angle);
+    
+    const tx = Math.round(newX);
+    const ty = Math.round(newY);
+    
+    if (canMoveTo(tx, ty)) {
+        player.moving = true;
+        player.moveFromX = player.x;
+        player.moveFromY = player.y;
+        player.targetX = tx;
+        player.targetY = ty;
+        player.moveProgress = 0;
+    }
+}
+
+function turnLeft() {
+    if (!player.moving) player.angle -= Math.PI / 2;
+}
+
+function turnRight() {
+    if (!player.moving) player.angle += Math.PI / 2;
+}
+
+function interact() {
+    const frontX = Math.round(player.x + Math.cos(player.angle));
+    const frontY = Math.round(player.y + Math.sin(player.angle));
+    
+    if (map[frontY] && map[frontY][frontX] === 3) {
+        const b = buildings.find(b => b.x === frontX && b.y === frontY);
+        if (b) {
+            alert('Вход в: ' + b.name);
+            return;
+        }
+    }
+}
+
+function update() {
+    if (player.moving) {
+        player.moveProgress += MOVE_SPEED;
+        if (player.moveProgress >= 1) {
+            player.x = player.targetX;
+            player.y = player.targetY;
+            player.moving = false;
+        } else {
+            const t = player.moveProgress;
+            player.x = player.moveFromX + (player.targetX - player.moveFromX) * t;
+            player.y = player.moveFromY + (player.targetY - player.moveFromY) * t;
+        }
+    }
+}
+
+function gameLoop() {
+    update();
+    render();
+    requestAnimationFrame(gameLoop);
+}
+
+document.addEventListener('keydown', (e) => {
+    switch(e.key.toLowerCase()) {
+        case 'w': case 'ц': case 'arrowup':
+            e.preventDefault();
+            stepForward();
+            break;
+        case 'a': case 'ф': case 'arrowleft':
+            e.preventDefault();
+            turnLeft();
+            break;
+        case 'd': case 'в': case 'arrowright':
+            e.preventDefault();
+            turnRight();
+            break;
+        case 's': case 'ы': case 'arrowdown':
+            e.preventDefault();
+            player.angle += Math.PI;
+            break;
+        case 'e': case 'у':
+            e.preventDefault();
+            interact();
+            break;
+    }
+});
+
+canvas.addEventListener('click', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    
+    if (x < W / 3) {
+        turnLeft();
+    } else if (x > W * 2 / 3) {
+        turnRight();
+    } else {
+        stepForward();
+    }
+});
+
+canvas.addEventListener('dblclick', (e) => {
+    e.preventDefault();
+    interact();
+});
+
+Textures.load(() => {
+    console.log('Игра запущена!');
+    gameLoop();
+});
+</script>
+</body>
+</html>
