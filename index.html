@@ -28,9 +28,9 @@
 const MAP_W = 20;
 const MAP_H = 20;
 const FOV = Math.PI / 2.5;
-const MOVE_SPEED = 0.15;
+const MOVE_SPEED = 0.1;
+const TURN_SPEED = 0.1; // Скорость плавного поворота
 
-// Карта: 0 - пусто, 1 - лес/стена, 3 - постройка
 const map = [];
 for (let y = 0; y < MAP_H; y++) {
     map[y] = [];
@@ -46,7 +46,7 @@ for (let y = 4; y <= 15; y++) {
     }
 }
 
-// Периметр - сплошная стена
+// Периметр - сплошная стена (без разрывов)
 for (let y = 3; y <= 16; y++) {
     for (let x = 3; x <= 16; x++) {
         if (y === 3 || y === 16 || x === 3 || x === 16) {
@@ -77,11 +77,14 @@ for (const b of buildings) {
     map[b.y][b.x] = 3;
 }
 
+// Игрок спавнится с юга, дуб в центре (9.5, 9.5)
 const player = {
     x: 9.5,
     y: 14.5,
     angle: -Math.PI / 2,
     moving: false,
+    turning: false,
+    turnTarget: null,
     moveFromX: 9.5,
     moveFromY: 14.5,
     targetX: 9.5,
@@ -242,7 +245,7 @@ function render() {
         zBuffer[x] = distance;
     }
     
-    // Дуб - спрайт (утоплен в пол, крупнее)
+    // Дуб в центре
     if (Textures.loaded && Textures.oak) {
         const oakDistance = Math.sqrt((9.5 - player.x) ** 2 + (9.5 - player.y) ** 2);
         
@@ -256,8 +259,8 @@ function render() {
                 const screenX = W / 2 + Math.tan(na) * (W / 2) / Math.tan(FOV / 2);
                 
                 if (screenX >= 0 && screenX < W && oakDistance < zBuffer[Math.floor(screenX)] + 0.5) {
-                    const oakSize = H / oakDistance * 4; // Вдвое крупнее
-                    const sy = HORIZON + oakSize * 0.2; // Утоплен в пол
+                    const oakSize = H / oakDistance * 4;
+                    const sy = HORIZON + oakSize * 0.1;
                     const sx = screenX - oakSize / 2;
                     
                     ctx.globalAlpha = 1;
@@ -269,25 +272,9 @@ function render() {
     }
     
     // Спрайты построек
-    const sprites = [];
     for (const b of buildings) {
-        sprites.push({ 
-            x: b.x + 0.5, 
-            y: b.y + 0.5, 
-            type: 'building',
-            building: b
-        });
-    }
-    
-    sprites.sort((a, b) => {
-        const da = Math.sqrt((a.x - player.x) ** 2 + (a.y - player.y) ** 2);
-        const db = Math.sqrt((b.x - player.x) ** 2 + (b.y - player.y) ** 2);
-        return db - da;
-    });
-    
-    for (const sprite of sprites) {
-        const dx = sprite.x - player.x;
-        const dy = sprite.y - player.y;
+        const dx = b.x + 0.5 - player.x;
+        const dy = b.y + 0.5 - player.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
         if (distance > 15) continue;
@@ -304,21 +291,21 @@ function render() {
         
         if (distance > zBuffer[Math.floor(screenX)] + 0.5) continue;
         
-        const size = H / distance * 0.8;
-        if (size < 20) continue;
+        const size = H / distance * 0.7;
+        if (size < 15) continue;
         
         const sy = HORIZON - size / 2;
         const sx = screenX - size / 2;
         
-        if (Textures.buildings[sprite.building.icon]) {
+        if (Textures.buildings[b.icon]) {
             ctx.globalAlpha = 1;
-            ctx.drawImage(Textures.buildings[sprite.building.icon], sx, sy, size, size);
+            ctx.drawImage(Textures.buildings[b.icon], sx, sy, size, size);
             
             if (distance < 2.5) {
                 ctx.fillStyle = '#e8d8c0';
                 ctx.font = 'bold 16px "Times New Roman", serif';
                 ctx.textAlign = 'center';
-                ctx.fillText(sprite.building.name, screenX, sy - 10);
+                ctx.fillText(b.name, screenX, sy - 10);
             }
         }
         ctx.globalAlpha = 1;
@@ -426,7 +413,7 @@ function canMoveTo(x, y) {
 }
 
 function stepForward() {
-    if (player.moving) return;
+    if (player.moving || player.turning) return;
     
     const newX = player.x + Math.cos(player.angle);
     const newY = player.y + Math.sin(player.angle);
@@ -445,11 +432,19 @@ function stepForward() {
 }
 
 function turnLeft() {
-    if (!player.moving) player.angle -= Math.PI / 2;
+    if (player.moving || player.turning) return;
+    player.turning = true;
+    player.turnFrom = player.angle;
+    player.turnTarget = player.angle - Math.PI / 2;
+    player.turnProgress = 0;
 }
 
 function turnRight() {
-    if (!player.moving) player.angle += Math.PI / 2;
+    if (player.moving || player.turning) return;
+    player.turning = true;
+    player.turnFrom = player.angle;
+    player.turnTarget = player.angle + Math.PI / 2;
+    player.turnProgress = 0;
 }
 
 function interact() {
@@ -466,16 +461,35 @@ function interact() {
 }
 
 function update() {
+    // Плавный поворот
+    if (player.turning) {
+        player.turnProgress += TURN_SPEED;
+        
+        if (player.turnProgress >= 1) {
+            player.angle = player.turnTarget;
+            player.turning = false;
+            player.turnProgress = 0;
+        } else {
+            const t = player.turnProgress;
+            const smoothT = t * t * (3 - 2 * t);
+            player.angle = player.turnFrom + (player.turnTarget - player.turnFrom) * smoothT;
+        }
+    }
+    
+    // Плавное движение
     if (player.moving) {
         player.moveProgress += MOVE_SPEED;
+        
         if (player.moveProgress >= 1) {
             player.x = player.targetX;
             player.y = player.targetY;
             player.moving = false;
+            player.moveProgress = 0;
         } else {
             const t = player.moveProgress;
-            player.x = player.moveFromX + (player.targetX - player.moveFromX) * t;
-            player.y = player.moveFromY + (player.targetY - player.moveFromY) * t;
+            const smoothT = t * t * (3 - 2 * t);
+            player.x = player.moveFromX + (player.targetX - player.moveFromX) * smoothT;
+            player.y = player.moveFromY + (player.targetY - player.moveFromY) * smoothT;
         }
     }
 }
@@ -502,7 +516,12 @@ document.addEventListener('keydown', (e) => {
             break;
         case 's': case 'ы': case 'arrowdown':
             e.preventDefault();
-            player.angle += Math.PI;
+            if (!player.turning && !player.moving) {
+                player.turning = true;
+                player.turnFrom = player.angle;
+                player.turnTarget = player.angle + Math.PI;
+                player.turnProgress = 0;
+            }
             break;
         case 'e': case 'у':
             e.preventDefault();
