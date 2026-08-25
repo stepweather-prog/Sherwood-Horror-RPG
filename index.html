@@ -25,72 +25,53 @@
 
 <script src="js/textures.js"></script>
 <script>
-const MAP_W = 20;
-const MAP_H = 20;
+const MAP_W = 10;
+const MAP_H = 10;
 const FOV = Math.PI / 2.5;
 const MOVE_SPEED = 0.1;
 const TURN_SPEED = 0.1;
 
+// Карта: 0 - пусто, 1 - стена, 3 - постройка
 const map = [];
 for (let y = 0; y < MAP_H; y++) {
     map[y] = [];
     for (let x = 0; x < MAP_W; x++) {
-        map[y][x] = 1;
+        map[y][x] = 1; // Всё стены
     }
 }
 
-// Площадь 10x10 (от 5 до 14) - меньше
-for (let y = 5; y <= 14; y++) {
-    for (let x = 5; x <= 14; x++) {
+// Пустая комната 8x8 (от 1 до 8)
+for (let y = 1; y <= 8; y++) {
+    for (let x = 1; x <= 8; x++) {
         map[y][x] = 0;
     }
 }
 
-// Периметр - сплошная стена
-for (let y = 4; y <= 15; y++) {
-    for (let x = 4; x <= 15; x++) {
-        if (y === 4 || y === 15 || x === 4 || x === 15) {
-            map[y][x] = 1;
-        }
-    }
-}
-
-// Постройки на периметре
+// Постройки по углам
 const buildings = [
-    { x: 6, y: 4, icon: 'Чат', name: 'Чат' },
-    { x: 7, y: 4, icon: 'Профиль', name: 'Профиль' },
-    { x: 9, y: 4, icon: 'Арена', name: 'Арена' },
-    { x: 11, y: 4, icon: 'Порталы', name: 'Порталы' },
-    { x: 12, y: 4, icon: 'Таверна', name: 'Таверна' },
-    { x: 14, y: 6, icon: 'Подземка', name: 'Подземка' },
-    { x: 14, y: 8, icon: 'Кузница', name: 'Кузница' },
-    { x: 14, y: 10, icon: 'Тренировка', name: 'Тренировка' },
-    { x: 14, y: 12, icon: 'Бестиарий', name: 'Бестиарий' },
-    { x: 12, y: 14, icon: 'Очаг', name: 'Очаг' },
-    { x: 11, y: 14, icon: 'Рынок', name: 'Рынок' },
-    { x: 9, y: 14, icon: 'Трофейный зал', name: 'Трофейный зал' },
-    { x: 7, y: 14, icon: 'Квесты', name: 'Квесты' },
-    { x: 6, y: 14, icon: 'Рейд', name: 'Рейд' },
+    { x: 1, y: 4, icon: 'Квесты', name: 'Квесты' },
+    { x: 4, y: 1, icon: 'Арена', name: 'Арена' },
+    { x: 7, y: 4, icon: 'Рынок', name: 'Рынок' },
+    { x: 4, y: 7, icon: 'Таверна', name: 'Таверна' },
 ];
 
 for (const b of buildings) {
     map[b.y][b.x] = 3;
 }
 
-// Игрок спавнится с юга, дуб в центре (9.5, 9.5)
 const player = {
-    x: 9.5,
-    y: 13.5,
+    x: 4.5,
+    y: 6.5,
     angle: -Math.PI / 2,
     moving: false,
     turning: false,
     turnFrom: -Math.PI / 2,
     turnTarget: -Math.PI / 2,
     turnProgress: 0,
-    moveFromX: 9.5,
-    moveFromY: 13.5,
-    targetX: 9.5,
-    targetY: 13.5,
+    moveFromX: 4.5,
+    moveFromY: 6.5,
+    targetX: 4.5,
+    targetY: 6.5,
     moveProgress: 0,
 };
 
@@ -247,32 +228,6 @@ function render() {
         zBuffer[x] = distance;
     }
     
-    // Дуб в центре
-    if (Textures.loaded && Textures.oak) {
-        const oakDistance = Math.sqrt((9.5 - player.x) ** 2 + (9.5 - player.y) ** 2);
-        
-        if (oakDistance > 1 && oakDistance < 15) {
-            const oakAngle = Math.atan2(9.5 - player.y, 9.5 - player.x) - player.angle;
-            let na = oakAngle;
-            while (na > Math.PI) na -= 2 * Math.PI;
-            while (na < -Math.PI) na += 2 * Math.PI;
-            
-            if (Math.abs(na) < FOV / 2 + 0.3) {
-                const screenX = W / 2 + Math.tan(na) * (W / 2) / Math.tan(FOV / 2);
-                
-                if (screenX >= 0 && screenX < W && oakDistance < zBuffer[Math.floor(screenX)] + 0.5) {
-                    const oakSize = H / oakDistance * 4;
-                    const sy = HORIZON + oakSize * 0.1;
-                    const sx = screenX - oakSize / 2;
-                    
-                    ctx.globalAlpha = 1;
-                    ctx.drawImage(Textures.oak, sx, sy, oakSize, oakSize * 0.8);
-                    ctx.globalAlpha = 1;
-                }
-            }
-        }
-    }
-    
     // Спрайты построек
     for (const b of buildings) {
         const dx = b.x + 0.5 - player.x;
@@ -313,84 +268,6 @@ function render() {
         ctx.globalAlpha = 1;
     }
     
-    // Индикаторы
-    for (const b of buildings) {
-        const dx = b.x + 0.5 - player.x;
-        const dy = b.y + 0.5 - player.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        
-        if (distance < 3.5 && distance > 0.5) {
-            const angle = Math.atan2(dy, dx) - player.angle;
-            let na = angle;
-            while (na > Math.PI) na -= 2 * Math.PI;
-            while (na < -Math.PI) na += 2 * Math.PI;
-            
-            let ix, iy = H / 2, dir;
-            
-            if (Math.abs(na) < 0.4) {
-                ix = W / 2;
-                dir = '↑';
-            } else if (na > 0) {
-                ix = W - 60;
-                dir = '→';
-            } else {
-                ix = 60;
-                dir = '←';
-            }
-            
-            if (Math.abs(na) > Math.PI * 0.7) {
-                dir = '↓';
-                ix = W / 2;
-                iy = H - 40;
-            }
-            
-            ctx.fillStyle = 'rgba(0,0,0,0.8)';
-            ctx.fillRect(ix - 50, iy - 22, 100, 40);
-            ctx.strokeStyle = '#8a6a3a';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(ix - 50, iy - 22, 100, 40);
-            
-            ctx.fillStyle = '#e8d8c0';
-            ctx.font = '11px "Times New Roman", serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(dir + ' ' + b.name, ix, iy);
-        }
-    }
-    
-    // Миникарта
-    const ms = 4;
-    const mx0 = W - MAP_W * ms - 10;
-    const my0 = 10;
-    
-    ctx.fillStyle = 'rgba(0,0,0,0.8)';
-    ctx.fillRect(mx0, my0, MAP_W * ms, MAP_H * ms);
-    
-    for (let y = 0; y < MAP_H; y++) {
-        for (let x = 0; x < MAP_W; x++) {
-            if (map[y][x] === 1) {
-                ctx.fillStyle = '#1a2a1a';
-                ctx.fillRect(mx0 + x * ms, my0 + y * ms, ms, ms);
-            } else if (map[y][x] === 3) {
-                ctx.fillStyle = '#6a5a3a';
-                ctx.fillRect(mx0 + x * ms, my0 + y * ms, ms, ms);
-            }
-        }
-    }
-    
-    ctx.fillStyle = '#4a3a1a';
-    ctx.fillRect(mx0 + 9 * ms, my0 + 9 * ms, ms * 2, ms * 2);
-    
-    ctx.fillStyle = '#c8b090';
-    ctx.fillRect(mx0 + player.x * ms - 1, my0 + player.y * ms - 1, 3, 3);
-    
-    ctx.strokeStyle = '#c8b090';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(mx0 + player.x * ms, my0 + player.y * ms);
-    ctx.lineTo(mx0 + (player.x + Math.cos(player.angle) * 2) * ms, my0 + (player.y + Math.sin(player.angle) * 2) * ms);
-    ctx.stroke();
-    
     // Виньетка
     const v = ctx.createRadialGradient(W/2, H/2, H/4, W/2, H/2, H * 0.75);
     v.addColorStop(0, 'rgba(0,0,0,0)');
@@ -404,12 +281,6 @@ function canMoveTo(x, y) {
     const my = Math.floor(y);
     
     if (mx < 0 || mx >= MAP_W || my < 0 || my >= MAP_H) return false;
-    if (mx <= 4 || mx >= 15 || my <= 4 || my >= 15) return false;
-    
-    // Запрещаем подходить к дубу
-    const dx = mx + 0.5 - 9.5;
-    const dy = my + 0.5 - 9.5;
-    if (Math.sqrt(dx * dx + dy * dy) < 1.8) return false;
     
     return map[my][mx] === 0;
 }
