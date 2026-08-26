@@ -1,3 +1,4 @@
+// js/textures.js
 const Textures = {
     floor: [],
     ceiling: [],
