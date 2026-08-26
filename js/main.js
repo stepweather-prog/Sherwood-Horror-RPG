@@ -36,14 +36,23 @@ function showHomeScreen() {
 
 function showSectionScreen(building) {
     const backgrounds = {
-        'Таверна': 'assets/backgrounds/section_tavern.png',
-        'Порталы': 'assets/backgrounds/portal.png',
-        'Чат': 'assets/backgrounds/chat_background.png',
-        'Рейд': 'assets/backgrounds/background_raid.png',
-        'Арена': 'assets/backgrounds/pvp_arena.png',
-        'Квесты': 'assets/backgrounds/quest.png',
-        'Ежедневные': 'assets/backgrounds/tasks_day.png',
-    };
+    'Таверна': 'assets/backgrounds/section_tavern.png',
+    'Порталы': 'assets/backgrounds/portal.png',
+    'Чат': 'assets/backgrounds/chat_background.png',
+    'Рейд': 'assets/backgrounds/background_raid.png',
+    'Арена': 'assets/backgrounds/pvp_arena.png',
+    'Квесты': 'assets/backgrounds/quest.png',
+    'Ежедневные': 'assets/backgrounds/tasks_day.png',
+    'Кузница': 'assets/backgrounds/forge.png',
+    'Тренировка': 'assets/backgrounds/training.png',
+    'Бестиарий': 'assets/backgrounds/bestiary_visual.png',
+    'Очаг': 'assets/backgrounds/fireplace_visual.png',
+    'Профиль': 'assets/backgrounds/profile_visual.png',
+    'Сумка': 'assets/backgrounds/bag.png',
+    'Настройки': 'assets/backgrounds/settings_visual.png',
+    'Таланты': 'assets/backgrounds/visual_talents.png',
+    'Рынок': 'assets/backgrounds/market.png',
+};
     
     const bg = backgrounds[building.icon] || '';
     
