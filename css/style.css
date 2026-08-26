@@ -96,10 +96,30 @@ canvas {
     bottom: -8%;
     left: 50%;
     transform: translateX(-50%) scaleX(1.1);
-    width: 40%; /* Уменьшена */
+    width: 40%;
     height: auto;
     object-fit: contain;
     z-index: 3;
+}
+
+#leftDivider {
+    position: absolute;
+    left: 30%;
+    top: 0;
+    height: 100%;
+    width: auto;
+    object-fit: contain;
+    z-index: 6;
+}
+
+#rightDivider {
+    position: absolute;
+    right: 30%;
+    top: 0;
+    height: 100%;
+    width: auto;
+    object-fit: contain;
+    z-index: 6;
 }
 
 #hero {
@@ -125,6 +145,8 @@ canvas {
     #rightStatue { width: 30%; }
     #arch { width: 36%; bottom: -5%; }
     #hero { width: 20%; bottom: 12%; }
+    #leftDivider { left: 32%; }
+    #rightDivider { right: 32%; }
 }
 
 @media (max-width: 480px) {
@@ -132,4 +154,6 @@ canvas {
     #rightStatue { width: 32%; }
     #arch { width: 32%; bottom: -3%; }
     #hero { width: 22%; bottom: 10%; }
+    #leftDivider { left: 34%; }
+    #rightDivider { right: 34%; }
 }
