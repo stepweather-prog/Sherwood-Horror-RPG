@@ -26,7 +26,7 @@ const buildings = [
     { x: 4.5, y: 7.5, icon: 'Таверна', name: 'Таверна' },
 ];
 
-const oak = { x: 4.5, y: 4.5 };
+const oak = { x: 4.5, y: 4.5 }; // Центр карты
 
 const player = {
     x: 4.5,
@@ -197,7 +197,7 @@ function render() {
         zBuffer[x] = distance;
     }
     
-    // Швы (толще в 3 раза)
+    // Швы (толще в 4 раза от текущих 0.24 = 0.96)
     if (Textures.seamBottom && Textures.seamTop) {
         for (let x = 0; x < W; x++) {
             const cameraX = 2 * x / W - 1;
@@ -212,7 +212,7 @@ function render() {
             const drawStart = Math.max(0, HORIZON - lineHeight / 2);
             const drawEnd = Math.min(H, HORIZON + lineHeight / 2);
             
-            const seamHeight = Math.floor(lineHeight * 0.24);
+            const seamHeight = Math.floor(lineHeight * 0.96);
             
             if (seamHeight > 2) {
                 // Нижний шов
@@ -234,7 +234,7 @@ function render() {
         }
     }
     
-    // Дуб
+    // Дуб (увеличен в 4 раза, стоит в центре, утоплен в пол)
     if (Textures.loaded && Textures.oak) {
         const oakDist = Math.sqrt((oak.x - player.x) ** 2 + (oak.y - player.y) ** 2);
         
@@ -248,8 +248,8 @@ function render() {
                 const screenX = W / 2 + Math.tan(na) * (W / 2) / Math.tan(FOV / 2);
                 
                 if (screenX >= 0 && screenX < W && oakDist < zBuffer[Math.floor(screenX)] + 0.5) {
-                    const oakSize = H / oakDist * 3;
-                    const sy = HORIZON + oakSize * 0.1;
+                    const oakSize = H / oakDist * 6; // Было 3, стало 6 (в 2 раза больше)
+                    const sy = HORIZON + oakSize * 0.3; // Утоплен в пол
                     const sx = screenX - oakSize / 2;
                     
                     ctx.globalAlpha = 1;
@@ -295,7 +295,7 @@ function render() {
                 const signWidth = size * 1.2;
                 const signHeight = size * 0.25;
                 const signX = screenX - signWidth / 2;
-                const signY = iconY + size; // Под иконкой
+                const signY = iconY + size;
                 
                 ctx.drawImage(Textures.buildings['all_stat'], signX, signY, signWidth, signHeight);
                 
