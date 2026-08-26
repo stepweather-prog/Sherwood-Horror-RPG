@@ -33,7 +33,7 @@ const Menu = {
     rightArrow: null,
     wallImage: null,
     ceilingImage: null,
-    floorImages: [],
+    floorImage: null,
     stepVideo: null,
     stepTimer: null,
     wallOffset: 0,
@@ -55,12 +55,8 @@ const Menu = {
         this.wallImage.src = 'assets/Sherwood_Square/wall_area_1.png';
         this.ceilingImage = new Image();
         this.ceilingImage.src = 'assets/Sherwood_Square/area_ceiling_moon.png';
-        
-        for (let i = 1; i <= 3; i++) {
-            const img = new Image();
-            img.src = `assets/Sherwood_Square/floor_area_${i}.png`;
-            this.floorImages.push(img);
-        }
+        this.floorImage = new Image();
+        this.floorImage.src = 'assets/Sherwood_Square/floor_area_1.png';
         
         this.stepVideo = document.createElement('video');
         this.stepVideo.src = 'assets/animation/step_up.webm';
@@ -180,13 +176,10 @@ const Menu = {
             this.homeRect = { x: 20, y: 20, w: homeSize, h: homeSize };
         }
         
-        // Пол — статичный, три плиты
-        if (this.floorImages.length >= 3) {
+        // Пол — три одинаковые плиты floor_area_1.png
+        if (this.floorImage && this.floorImage.complete) {
             for (let i = 0; i < 3; i++) {
-                const img = this.floorImages[i];
-                if (img && img.complete) {
-                    ctx.drawImage(img, i * tileWidth, floorY, tileWidth, tileHeight);
-                }
+                ctx.drawImage(this.floorImage, i * tileWidth, floorY, tileWidth, tileHeight);
             }
         }
         
@@ -237,7 +230,7 @@ const Menu = {
             }
         }
         
-        // Разделители — по 3 секции
+        // Разделители
         if (typeof Textures !== 'undefined' && Textures.seamTop && Textures.seamTop.complete) {
             const img = Textures.seamTop;
             const seamWidth = W / 3;
@@ -254,7 +247,7 @@ const Menu = {
             }
         }
         
-        // Анимация поверх пола
+        // Анимация
         if (this.stepVideo && this.stepVideo.readyState >= 2 && !this.stepVideo.paused) {
             const videoSize = Math.min(W * 0.2, H * 0.2);
             ctx.drawImage(this.stepVideo, W / 2 - videoSize / 2, floorY - videoSize / 2, videoSize, videoSize);
