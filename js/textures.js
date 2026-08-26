@@ -15,6 +15,11 @@ const Textures = {
     loadedTextures: 0,
     
     load(callback) {
+        if (this.loaded) {
+            if (callback) callback();
+            return;
+        }
+        
         // Пол - 6 плиток
         for (let i = 1; i <= 6; i++) {
             this.loadImage(`assets/Sherwood_Square/floor_area_${i}.png`, (img) => {
