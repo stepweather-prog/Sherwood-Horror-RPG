@@ -19,7 +19,6 @@ for (let y = 1; y <= 8; y++) {
     }
 }
 
-// Здания привязаны к периметру (стены)
 const buildings = [
     { x: 1, y: 4, icon: 'Квесты', name: 'Квесты' },
     { x: 4, y: 1, icon: 'Арена', name: 'Арена' },
@@ -127,7 +126,6 @@ function castRay(rayAngle) {
 function render() {
     const HORIZON = Math.floor(H * 0.35);
     
-    // Потолок
     if (Textures.loaded && Textures.ceilingCanvas) {
         ctx.drawImage(Textures.ceilingCanvas, 0, 0, W, HORIZON);
     } else {
@@ -135,7 +133,6 @@ function render() {
         ctx.fillRect(0, 0, W, HORIZON);
     }
     
-    // Пол
     if (Textures.loaded && Textures.floorCanvas) {
         ctx.drawImage(Textures.floorCanvas, 0, HORIZON, W, H - HORIZON);
     } else {
@@ -143,7 +140,6 @@ function render() {
         ctx.fillRect(0, HORIZON, W, H - HORIZON);
     }
     
-    // Стены
     for (let x = 0; x < W; x++) {
         const cameraX = 2 * x / W - 1;
         const rayAngle = player.angle + Math.atan(cameraX * Math.tan(FOV / 2));
@@ -188,7 +184,6 @@ function render() {
         zBuffer[x] = distance;
     }
     
-    // Швы
     if (Textures.seamBottom && Textures.seamTop) {
         for (let x = 0; x < W; x++) {
             const cameraX = 2 * x / W - 1;
@@ -229,7 +224,6 @@ function render() {
         }
     }
     
-    // Дуб
     if (Textures.loaded && Textures.oak) {
         const oakDist = Math.sqrt((oak.x - player.x) ** 2 + (oak.y - player.y) ** 2);
         
@@ -255,7 +249,6 @@ function render() {
         }
     }
     
-    // Иконка выезжает перед лицом, если игрок у здания
     const nearBuilding = buildings.find(b => {
         const dist = Math.sqrt((b.x + 0.5 - player.x) ** 2 + (b.y + 0.5 - player.y) ** 2);
         return dist < 1.5;
@@ -270,14 +263,12 @@ function render() {
         ctx.drawImage(Textures.buildings[nearBuilding.icon], sx, sy, size, size);
         ctx.globalAlpha = 1;
         
-        // Название
         ctx.fillStyle = '#e8d8c0';
         ctx.font = 'bold 20px "Times New Roman", serif';
         ctx.textAlign = 'center';
         ctx.fillText(nearBuilding.name, W / 2, sy + size + 30);
     }
     
-    // Виньетка
     const v = ctx.createRadialGradient(W/2, H/2, H/4, W/2, H/2, H * 0.75);
     v.addColorStop(0, 'rgba(0,0,0,0)');
     v.addColorStop(1, 'rgba(0,0,0,0.6)');
@@ -298,6 +289,56 @@ function canMoveTo(x, y) {
     return map[my][mx] === 0;
 }
 
+function animateStep(targetX, targetY) {
+    const startX = player.x;
+    const startY = player.y;
+    const duration = 800;
+    const startTime = performance.now();
+    
+    function stepLoop() {
+        const elapsed = performance.now() - startTime;
+        const t = Math.min(elapsed / duration, 1);
+        const smoothT = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        
+        player.x = startX + (targetX - startX) * smoothT;
+        player.y = startY + (targetY - startY) * smoothT;
+        
+        if (t < 1) {
+            requestAnimationFrame(stepLoop);
+        } else {
+            player.x = targetX;
+            player.y = targetY;
+            player.moving = false;
+        }
+    }
+    
+    stepLoop();
+}
+
+function animateTurn(targetAngle) {
+    const startAngle = player.angle;
+    const duration = 500;
+    const startTime = performance.now();
+    player.turning = true;
+    
+    function turnLoop() {
+        const elapsed = performance.now() - startTime;
+        const t = Math.min(elapsed / duration, 1);
+        const smoothT = t * t * (3 - 2 * t);
+        
+        player.angle = startAngle + (targetAngle - startAngle) * smoothT;
+        
+        if (t < 1) {
+            requestAnimationFrame(turnLoop);
+        } else {
+            player.angle = targetAngle;
+            player.turning = false;
+        }
+    }
+    
+    turnLoop();
+}
+
 function stepForward() {
     if (player.moving || player.turning) return;
     
@@ -309,28 +350,18 @@ function stepForward() {
     
     if (canMoveTo(tx, ty)) {
         player.moving = true;
-        player.moveFromX = player.x;
-        player.moveFromY = player.y;
-        player.targetX = tx;
-        player.targetY = ty;
-        player.moveProgress = 0;
+        animateStep(tx, ty);
     }
 }
 
 function turnLeft() {
     if (player.moving || player.turning) return;
-    player.turning = true;
-    player.turnFrom = player.angle;
-    player.turnTarget = player.angle - Math.PI / 2;
-    player.turnProgress = 0;
+    animateTurn(player.angle - Math.PI / 2);
 }
 
 function turnRight() {
     if (player.moving || player.turning) return;
-    player.turning = true;
-    player.turnFrom = player.angle;
-    player.turnTarget = player.angle + Math.PI / 2;
-    player.turnProgress = 0;
+    animateTurn(player.angle + Math.PI / 2);
 }
 
 function interact() {
@@ -344,41 +375,8 @@ function interact() {
     }
 }
 
-function update() {
-    if (player.turning) {
-        player.turnProgress += TURN_SPEED;
-        
-        if (player.turnProgress >= 1) {
-            player.angle = player.turnTarget;
-            player.turning = false;
-            player.turnProgress = 0;
-        } else {
-            const t = player.turnProgress;
-            const smoothT = t * t * (3 - 2 * t);
-            player.angle = player.turnFrom + (player.turnTarget - player.turnFrom) * smoothT;
-        }
-    }
-    
-    if (player.moving) {
-        player.moveProgress += MOVE_SPEED;
-        
-        if (player.moveProgress >= 1) {
-            player.x = player.targetX;
-            player.y = player.targetY;
-            player.moving = false;
-            player.moveProgress = 0;
-        } else {
-            const t = player.moveProgress;
-            const smoothT = t * t * (3 - 2 * t);
-            player.x = player.moveFromX + (player.targetX - player.moveFromX) * smoothT;
-            player.y = player.moveFromY + (player.targetY - player.moveFromY) * smoothT;
-        }
-    }
-}
-
 function gameLoop() {
     if (currentScreen === 'game') {
-        update();
         render();
     }
     requestAnimationFrame(gameLoop);
@@ -393,6 +391,26 @@ function startGame() {
         });
     }
 }
+
+// Кнопки на экране
+const joystickHTML = `
+<div id="city-joystick" style="position:fixed;bottom:50px;left:50%;transform:translateX(-50%);width:180px;height:180px;z-index:30;pointer-events:auto;">
+    <div class="arrow-btn" id="city-forward" style="position:absolute;top:0;left:62px;width:56px;height:56px;background:rgba(10,8,5,0.9);border:2px solid #6b5a3a;border-radius:50%;color:#c8a050;font-size:24px;display:flex;align-items:center;justify-content:center;pointer-events:auto;-webkit-tap-highlight-color:transparent;text-shadow:0 0 8px #8b6b3a;box-shadow:0 0 10px rgba(139,107,58,0.3);">▲</div>
+    <div class="arrow-btn" id="city-left" style="position:absolute;top:62px;left:0;width:56px;height:56px;background:rgba(10,8,5,0.9);border:2px solid #6b5a3a;border-radius:50%;color:#c8a050;font-size:24px;display:flex;align-items:center;justify-content:center;pointer-events:auto;-webkit-tap-highlight-color:transparent;text-shadow:0 0 8px #8b6b3a;box-shadow:0 0 10px rgba(139,107,58,0.3);">◀</div>
+    <div class="arrow-btn" id="city-right" style="position:absolute;top:62px;left:124px;width:56px;height:56px;background:rgba(10,8,5,0.9);border:2px solid #6b5a3a;border-radius:50%;color:#c8a050;font-size:24px;display:flex;align-items:center;justify-content:center;pointer-events:auto;-webkit-tap-highlight-color:transparent;text-shadow:0 0 8px #8b6b3a;box-shadow:0 0 10px rgba(139,107,58,0.3);">▶</div>
+    <div class="arrow-btn" id="city-back" style="position:absolute;top:124px;left:62px;width:56px;height:56px;background:rgba(10,8,5,0.9);border:2px solid #6b5a3a;border-radius:50%;color:#c8a050;font-size:24px;display:flex;align-items:center;justify-content:center;pointer-events:auto;-webkit-tap-highlight-color:transparent;text-shadow:0 0 8px #8b6b3a;box-shadow:0 0 10px rgba(139,107,58,0.3);">▼</div>
+</div>`;
+
+document.body.insertAdjacentHTML('beforeend', joystickHTML);
+
+document.getElementById('city-forward').addEventListener('touchstart', (e) => { e.preventDefault(); stepForward(); });
+document.getElementById('city-forward').addEventListener('click', stepForward);
+document.getElementById('city-back').addEventListener('touchstart', (e) => { e.preventDefault(); player.angle += Math.PI; });
+document.getElementById('city-back').addEventListener('click', () => { player.angle += Math.PI; });
+document.getElementById('city-left').addEventListener('touchstart', (e) => { e.preventDefault(); turnLeft(); });
+document.getElementById('city-left').addEventListener('click', turnLeft);
+document.getElementById('city-right').addEventListener('touchstart', (e) => { e.preventDefault(); turnRight(); });
+document.getElementById('city-right').addEventListener('click', turnRight);
 
 document.addEventListener('keydown', (e) => {
     if (currentScreen !== 'game') return;
@@ -413,50 +431,12 @@ document.addEventListener('keydown', (e) => {
         case 's': case 'ы': case 'arrowdown':
             e.preventDefault();
             if (!player.turning && !player.moving) {
-                player.turning = true;
-                player.turnFrom = player.angle;
-                player.turnTarget = player.angle + Math.PI;
-                player.turnProgress = 0;
+                player.angle += Math.PI;
             }
             break;
         case 'e': case 'у':
             e.preventDefault();
             interact();
             break;
-    }
-});
-
-canvas.addEventListener('click', (e) => {
-    if (currentScreen !== 'game') return;
-    
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    // Если иконка на экране - тапаем по ней
-    const nearBuilding = buildings.find(b => {
-        const dist = Math.sqrt((b.x + 0.5 - player.x) ** 2 + (b.y + 0.5 - player.y) ** 2);
-        return dist < 1.5;
-    });
-    
-    if (nearBuilding) {
-        interact();
-        return;
-    }
-    
-    // Иначе - управление
-    if (x < W / 3) {
-        turnLeft();
-    } else if (x > W * 2 / 3) {
-        turnRight();
-    } else {
-        stepForward();
-    }
-});
-
-canvas.addEventListener('dblclick', (e) => {
-    e.preventDefault();
-    if (currentScreen === 'game') {
-        interact();
     }
 });
