@@ -4,35 +4,249 @@
     <meta charset="UTF-8">
     <title>Sherwood Horror RPG</title>
     <link rel="icon" href="data:,">
-    <link rel="stylesheet" href="css/style.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #000; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+        canvas { display: block; }
+    </style>
 </head>
 <body>
-
-<!-- Загрузочный экран -->
-<div id="loadingScreen">
-    <img src="assets/backgrounds/loading_screen_with_logo.png" alt="Loading">
-    <button id="playButton">
-        <img src="assets/icons/play_button.png" alt="Play">
-    </button>
-</div>
-
-<!-- Домашняя страница -->
-<div id="homeScreen">
-    <video id="videoBackground" autoplay muted loop>
-        <source src="assets/animation/animation_frame_hero.webm" type="video/webm">
-    </video>
-    <img id="leftStatue" src="assets/game_details/left_statue_of_the_main_screen.png" alt="Left Statue">
-    <img id="rightStatue" src="assets/game_details/right_statue_of_the_main_screen.png" alt="Right Statue">
-    <img id="arch" src="assets/game_details/staircase_with_an_arch.png" alt="Arch">
-    <img id="hero" src="assets/hero_skins/skin1_01.png" alt="Hero">
-</div>
-
-<!-- Игровой канвас -->
 <canvas id="game"></canvas>
-
 <script src="js/textures.js"></script>
 <script src="js/audio.js"></script>
 <script src="js/main.js"></script>
-<script src="js/game.js"></script>
+<script>
+// ========== МЕНЮ ГОРОДА ==========
+const buildings = [
+    { icon: 'Квесты', name: 'Квесты' },
+    { icon: 'Арена', name: 'Арена' },
+    { icon: 'Рынок', name: 'Рынок' },
+    { icon: 'Таверна', name: 'Таверна' },
+    { icon: 'Кузница', name: 'Кузница' },
+    { icon: 'Тренировка', name: 'Тренировка' },
+    { icon: 'Бестиарий', name: 'Бестиарий' },
+    { icon: 'Очаг', name: 'Очаг' },
+    { icon: 'Порталы', name: 'Порталы' },
+    { icon: 'Чат', name: 'Чат' },
+    { icon: 'Профиль', name: 'Профиль' },
+    { icon: 'Рейд', name: 'Рейд' },
+    { icon: 'Подземка', name: 'Подземка' },
+    { icon: 'Сумка', name: 'Сумка' },
+    { icon: 'Настройки', name: 'Настройки' },
+    { icon: 'Таланты', name: 'Таланты' },
+    { icon: 'Ежедневные', name: 'Ежедневные' },
+    { icon: 'Дуб', name: 'Домой' },
+];
+
+let currentIndex = 0;
+
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+let W = window.innerWidth;
+let H = window.innerHeight;
+
+function resizeCanvas() {
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = W;
+    canvas.height = H;
+}
+
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+function renderMenu() {
+    ctx.fillStyle = '#0a0805';
+    ctx.fillRect(0, 0, W, H);
+    
+    const HORIZON = Math.floor(H * 0.3);
+    
+    // Пол
+    if (Textures.loaded && Textures.floorCanvas) {
+        ctx.drawImage(Textures.floorCanvas, 0, HORIZON, W, H - HORIZON);
+    }
+    
+    // Потолок
+    if (Textures.loaded && Textures.ceilingCanvas) {
+        ctx.drawImage(Textures.ceilingCanvas, 0, 0, W, HORIZON);
+    }
+    
+    // Три линии
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillRect(0, HORIZON - 2, W, 4);
+    ctx.fillRect(0, HORIZON + H*0.25, W, 2);
+    ctx.fillRect(0, HORIZON + H*0.5, W, 2);
+    
+    // Стена (текущая текстура)
+    const wallTex = Textures.walls[currentIndex % Textures.walls.length];
+    if (wallTex) {
+        ctx.drawImage(wallTex, 0, HORIZON - H*0.3, W, H*0.3);
+    }
+    
+    // Текущая иконка
+    const building = buildings[currentIndex];
+    if (Textures.buildings[building.icon]) {
+        const iconSize = H * 0.25;
+        const sx = W/2 - iconSize/2;
+        const sy = HORIZON - iconSize/2;
+        ctx.drawImage(Textures.buildings[building.icon], sx, sy, iconSize, iconSize);
+    }
+    
+    // Табличка
+    if (Textures.buildings['all_stat']) {
+        const signW = W * 0.4;
+        const signH = H * 0.08;
+        const sx = W/2 - signW/2;
+        const sy = HORIZON + H*0.1;
+        ctx.drawImage(Textures.buildings['all_stat'], sx, sy, signW, signH);
+        ctx.fillStyle = '#e8d8c0';
+        ctx.font = `${Math.floor(signH*0.5)}px "Times New Roman", serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(building.name, W/2, sy + signH/2);
+    }
+    
+    // Стрелки
+    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+    ctx.fillRect(W*0.05, H*0.45, W*0.1, H*0.1);
+    ctx.fillRect(W*0.85, H*0.45, W*0.1, H*0.1);
+    ctx.fillStyle = '#c8a050';
+    ctx.font = `${Math.floor(H*0.06)}px Arial`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('◀', W*0.1, H*0.5);
+    ctx.fillText('▶', W*0.9, H*0.5);
+    
+    requestAnimationFrame(renderMenu);
+}
+
+function nextBuilding() {
+    currentIndex = (currentIndex + 1) % buildings.length;
+}
+
+function prevBuilding() {
+    currentIndex = (currentIndex - 1 + buildings.length) % buildings.length;
+}
+
+function interactMenu() {
+    const building = buildings[currentIndex];
+    if (building.icon === 'Дуб') {
+        // Домой
+        if (typeof showHomeScreen === 'function') showHomeScreen();
+    } else if (building.icon === 'Подземка') {
+        showDungeonScreen();
+    } else {
+        showSectionScreen(building);
+    }
+}
+
+canvas.addEventListener('click', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    if (x < W*0.15) {
+        prevBuilding();
+    } else if (x > W*0.85) {
+        nextBuilding();
+    } else {
+        interactMenu();
+    }
+});
+
+canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    
+    if (x < W*0.15) {
+        prevBuilding();
+    } else if (x > W*0.85) {
+        nextBuilding();
+    } else {
+        interactMenu();
+    }
+});
+
+// ========== ЭКРАНЫ ==========
+function showSectionScreen(building) {
+    const backgrounds = {
+        'Таверна': 'assets/backgrounds/section_tavern.png',
+        'Порталы': 'assets/backgrounds/portal.png',
+        'Чат': 'assets/backgrounds/chat_background.png',
+        'Рейд': 'assets/backgrounds/background_raid.png',
+        'Арена': 'assets/backgrounds/pvp_arena.png',
+        'Квесты': 'assets/backgrounds/quest.png',
+        'Ежедневные': 'assets/backgrounds/tasks_day.png',
+    };
+    
+    const bg = backgrounds[building.icon] || '';
+    
+    const screenHTML = `
+    <div id="section-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:100;background:url('${bg}') center/cover no-repeat;display:flex;flex-direction:column;">
+        <div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(0,0,0,0.5);">
+            <button onclick="closeSectionScreen()" style="background:transparent;border:none;cursor:pointer;padding:0;width:50px;height:50px;">
+                <img src="assets/all_buttons/back.png" style="width:100%;height:100%;object-fit:contain;">
+            </button>
+            <span style="color:#e0c080;font-size:1.2em;text-shadow:0 0 10px #000;">${building.name}</span>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:20px;">
+        </div>
+    </div>`;
+    
+    document.body.insertAdjacentHTML('beforeend', screenHTML);
+}
+
+function closeSectionScreen() {
+    const screen = document.getElementById('section-screen');
+    if (screen) screen.remove();
+}
+
+function showDungeonScreen() {
+    const screenHTML = `
+    <div id="dungeon-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:100;background:url('assets/backgrounds/sherwood_thicket.png') center/cover no-repeat;display:flex;flex-direction:column;overflow:hidden;">
+        <div style="display:flex;align-items:center;gap:12px;padding:12px;flex-shrink:0;background:rgba(0,0,0,0.5);">
+            <button onclick="closeDungeonScreen()" style="background:transparent;border:none;cursor:pointer;padding:0;width:50px;height:50px;">
+                <img src="assets/all_buttons/back.png" style="width:100%;height:100%;object-fit:contain;">
+            </button>
+            <span style="color:#e0c080;font-size:1.2em;text-shadow:0 0 10px #000;">Подземелья</span>
+        </div>
+        <div style="flex:1;overflow-y:auto;overflow-x:hidden;padding:20px;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:30px;padding-bottom:40px;">
+                <div onclick="enterDungeon('forest')" style="text-align:center;cursor:pointer;">
+                    <img src="assets/icons/the_cursed_thicket.png" style="width:180px;height:180px;object-fit:contain;display:block;margin:0 auto;">
+                    <div style="color:#e0c080;font-size:1.1em;font-weight:bold;margin-top:8px;text-shadow:0 0 10px #000;">Проклятая чаща</div>
+                </div>
+                <div onclick="enterDungeon('swamp')" style="text-align:center;cursor:pointer;">
+                    <img src="assets/icons/primordial_swamp.png" style="width:180px;height:180px;object-fit:contain;display:block;margin:0 auto;">
+                    <div style="color:#e0c080;font-size:1.1em;font-weight:bold;margin-top:8px;text-shadow:0 0 10px #000;">Первородное болото</div>
+                </div>
+                <div onclick="enterDungeon('cave')" style="text-align:center;cursor:pointer;">
+                    <img src="assets/icons/basalt_grotto.png" style="width:180px;height:180px;object-fit:contain;display:block;margin:0 auto;">
+                    <div style="color:#e0c080;font-size:1.1em;font-weight:bold;margin-top:8px;text-shadow:0 0 10px #000;">Базальтовый грот</div>
+                </div>
+            </div>
+        </div>
+    </div>`;
+    
+    document.body.insertAdjacentHTML('beforeend', screenHTML);
+}
+
+function closeDungeonScreen() {
+    const screen = document.getElementById('dungeon-screen');
+    if (screen) screen.remove();
+}
+
+function enterDungeon(dungeonId) {
+    closeDungeonScreen();
+    alert('Вход в подземку: ' + dungeonId);
+}
+
+// Запуск
+Textures.load(() => {
+    renderMenu();
+});
+</script>
 </body>
 </html>
