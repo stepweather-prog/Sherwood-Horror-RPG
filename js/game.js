@@ -26,7 +26,7 @@ const buildings = [
     { x: 4.5, y: 7.5, icon: 'Таверна', name: 'Таверна' },
 ];
 
-const oak = { x: 4.5, y: 4.5 }; // Центр карты
+const oak = { x: 4.5, y: 4.5 };
 
 const player = {
     x: 4.5,
@@ -197,7 +197,7 @@ function render() {
         zBuffer[x] = distance;
     }
     
-    // Швы (толще в 4 раза от текущих 0.24 = 0.96)
+    // Швы (растянуты по вертикали)
     if (Textures.seamBottom && Textures.seamTop) {
         for (let x = 0; x < W; x++) {
             const cameraX = 2 * x / W - 1;
@@ -212,7 +212,8 @@ function render() {
             const drawStart = Math.max(0, HORIZON - lineHeight / 2);
             const drawEnd = Math.min(H, HORIZON + lineHeight / 2);
             
-            const seamHeight = Math.floor(lineHeight * 0.96);
+            // Высота шва - 15% от высоты стены
+            const seamHeight = Math.floor(lineHeight * 0.15);
             
             if (seamHeight > 2) {
                 // Нижний шов
@@ -234,7 +235,7 @@ function render() {
         }
     }
     
-    // Дуб (увеличен в 4 раза, стоит в центре, утоплен в пол)
+    // Дуб (увеличен, утоплен в пол)
     if (Textures.loaded && Textures.oak) {
         const oakDist = Math.sqrt((oak.x - player.x) ** 2 + (oak.y - player.y) ** 2);
         
@@ -248,8 +249,8 @@ function render() {
                 const screenX = W / 2 + Math.tan(na) * (W / 2) / Math.tan(FOV / 2);
                 
                 if (screenX >= 0 && screenX < W && oakDist < zBuffer[Math.floor(screenX)] + 0.5) {
-                    const oakSize = H / oakDist * 6; // Было 3, стало 6 (в 2 раза больше)
-                    const sy = HORIZON + oakSize * 0.3; // Утоплен в пол
+                    const oakSize = H / oakDist * 6;
+                    const sy = HORIZON + oakSize * 0.3;
                     const sx = screenX - oakSize / 2;
                     
                     ctx.globalAlpha = 1;
