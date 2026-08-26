@@ -55,8 +55,12 @@ const Menu = {
         this.wallImage.src = 'assets/Sherwood_Square/wall_area_1.png';
         this.ceilingImage = new Image();
         this.ceilingImage.src = 'assets/Sherwood_Square/area_ceiling_moon.png';
-        this.floorImage = new Image();
-        this.floorImage.src = 'assets/Sherwood_Square/floor_area_1.png';
+        this.floorImages = [];
+for (let i = 1; i <= 3; i++) {
+    const img = new Image();
+    img.src = `assets/Sherwood_Square/floor${i}.png`;
+    this.floorImages.push(img);
+}
         
         this.stepVideo = document.createElement('video');
         this.stepVideo.src = 'assets/animation/step_up.webm';
@@ -176,12 +180,15 @@ const Menu = {
             this.homeRect = { x: 20, y: 20, w: homeSize, h: homeSize };
         }
         
-        // Пол — три одинаковые плиты floor_area_1.png
-        if (this.floorImage && this.floorImage.complete) {
-            for (let i = 0; i < 3; i++) {
-                ctx.drawImage(this.floorImage, i * tileWidth, floorY, tileWidth, tileHeight);
-            }
+        // Пол — три плиты
+        if (this.floorImages && this.floorImages.length === 3) {
+    for (let i = 0; i < 3; i++) {
+        const img = this.floorImages[i];
+        if (img && img.complete) {
+            ctx.drawImage(img, i * tileWidth, floorY, tileWidth, tileHeight);
         }
+    }
+}
         
         // Стена и иконки — карусель
         const wallY = skyHeight;
@@ -230,27 +237,27 @@ const Menu = {
             }
         }
         
-        // Разделители
+        // Разделители — по два на каждую плиту (верхний и нижний)
         if (typeof Textures !== 'undefined' && Textures.seamTop && Textures.seamTop.complete) {
             const img = Textures.seamTop;
-            const seamWidth = W / 3;
             for (let i = 0; i < 3; i++) {
-                ctx.drawImage(img, i * seamWidth, wallY - 20, seamWidth, 40);
+                ctx.drawImage(img, i * tileWidth, wallY - 20, tileWidth, 40);
             }
         }
         
         if (typeof Textures !== 'undefined' && Textures.seamBottom && Textures.seamBottom.complete) {
             const img = Textures.seamBottom;
-            const seamWidth = W / 3;
             for (let i = 0; i < 3; i++) {
-                ctx.drawImage(img, i * seamWidth, floorY - 20, seamWidth, 40);
+                ctx.drawImage(img, i * tileWidth, floorY - 20, tileWidth, 40);
             }
         }
         
-        // Анимация
+        // Анимация — от самого низа окна игры
         if (this.stepVideo && this.stepVideo.readyState >= 2 && !this.stepVideo.paused) {
-            const videoSize = Math.min(W * 0.2, H * 0.2);
-            ctx.drawImage(this.stepVideo, W / 2 - videoSize / 2, floorY - videoSize / 2, videoSize, videoSize);
+            const videoSize = Math.min(W * 0.25, H * 0.25);
+            const videoX = W / 2 - videoSize / 2;
+            const videoY = H - videoSize; // От самого низа
+            ctx.drawImage(this.stepVideo, videoX, videoY, videoSize, videoSize);
         }
         
         // Стрелки
