@@ -1,4 +1,3 @@
-/* css/style.css */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body {
     width: 100%;
@@ -64,6 +63,9 @@ canvas {
     object-fit: contain;
 }
 
+/* ==========================================================================
+   БАЗОВАЯ МОБИЛЬНАЯ ВЕРСИЯ (Смартфоны по умолчанию)
+   ========================================================================== */
 #homeScreen {
     position: fixed;
     top: 0;
@@ -76,70 +78,53 @@ canvas {
     overflow: hidden;
 }
 
-/* Статуи — по краям, не разбегаются */
-#leftStatue {
+#homeScreen img {
     position: absolute;
-    left: 0;
-    top: 0;
-    width: 30%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-    z-index: 4;
 }
 
-#rightStatue {
-    position: absolute;
-    right: 0;
-    top: 0;
-    width: 30%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-    z-index: 4;
+/* На смартфонах полностью скрываем статуи, чтобы освободить место */
+#leftStatue, #rightStatue {
+    display: none; 
 }
 
-/* Арка — зафиксирована по высоте экрана */
+/* Арка на мобилках растягивается на максимум */
 #arch {
-    position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: auto;
-    height: 90vh; /* Всегда 90% высоты экрана */
-    object-fit: contain;
+    width: 100vw; /* Занимает всю ширину экрана смартфона */
+    height: 100vh; /* И всю высоту */
+    object-fit: cover; /* Заполняет экран без черных полос по бокам */
     z-index: 3;
 }
 
-/* Разделители — рядом с аркой, не вплотную */
+/* Разделители швов на мобилках привязываем к краям экрана */
 #leftDivider {
-    position: absolute;
-    left: 31%; /* Чуть отодвинут от арки */
+    left: 0;
     top: 50%;
     transform: translateY(-50%);
-    height: 80vh;
+    height: 100vh;
     width: auto;
     object-fit: contain;
     z-index: 6;
 }
 
 #rightDivider {
-    position: absolute;
-    right: 31%;
+    right: 0;
     top: 50%;
     transform: translateY(-50%);
-    height: 80vh;
+    height: 100vh;
     width: auto;
     object-fit: contain;
     z-index: 6;
 }
 
+/* Герой по центру портала */
 #hero {
-    position: absolute;
-    bottom: 10%;
+    bottom: 8%;
     left: 50%;
     transform: translateX(-50%);
-    width: 18%;
+    width: 25%; /* На мобилке делаем героя чуть крупнее, чтобы попадать пальцем */
     height: auto;
     object-fit: contain;
     z-index: 5;
@@ -151,28 +136,42 @@ canvas {
     transform: translateX(-50%) scale(0.95);
 }
 
-/* Адаптивность без разбегания */
-@media (max-width: 768px) {
-    #leftStatue { width: 32%; }
-    #rightStatue { width: 32%; }
-    #arch { height: 80vh; }
-    #leftDivider { left: 33%; height: 70vh; }
-    #rightDivider { right: 33%; height: 70vh; }
-    #hero { width: 22%; bottom: 12%; }
-}
 
-@media (max-width: 480px) {
-    #leftStatue { width: 34%; }
-    #rightStatue { width: 34%; }
-    #arch { height: 75vh; }
-    #leftDivider { left: 35%; height: 65vh; }
-    #rightDivider { right: 35%; height: 65vh; }
-    #hero { width: 24%; bottom: 14%; }
-}
+/* ==========================================================================
+   ВЕРСИЯ ДЛЯ ПК И ШИРОКИХ ЭКРАНОВ (Включаем статуи обратно)
+   ========================================================================== */
+@media (min-width: 769px) {
+    #homeScreen {
+        position: relative;
+        width: 100vmin;
+        height: 133.33vmin; /* Пропорции игрового окна 3:4 */
+        max-width: 100vw;
+        max-height: 100vh;
+        box-shadow: 0 0 50px rgba(0,0,0,0.8);
+    }
 
-@media (orientation: landscape) and (max-height: 500px) {
-    #arch { height: 85vh; }
-    #leftDivider { height: 75vh; }
-    #rightDivider { height: 75vh; }
-    #hero { width: 15%; bottom: 8%; }
+    /* Возвращаем статуи на больших экранах */
+    #leftStatue, #rightStatue {
+        display: block;
+        top: 0;
+        width: 32%;
+        height: 100%;
+        object-fit: cover;
+        z-index: 4;
+    }
+    #leftStatue { left: 0; object-position: right center; }
+    #rightStatue { right: 0; object-position: left center; }
+
+    /* Переключаем арку в режим аккуратного контейнера */
+    #arch {
+        width: auto;
+        height: 95%;
+        object-fit: contain;
+    }
+
+    /* Возвращаем разделители на свои места внутри контейнера */
+    #leftDivider { left: 20%; height: 85%; }
+    #rightDivider { right: 20%; height: 85%; }
+    
+    #hero { width: 20%; bottom: 8%; }
 }
