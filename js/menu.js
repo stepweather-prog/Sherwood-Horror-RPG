@@ -1,192 +1,122 @@
-// js/menu.js — полный файл, стена из одного файла
-const Menu = {
-    buildings: [
-        { icon: 'Квесты', name: 'Квесты' },
-        { icon: 'Арена', name: 'Арена' },
-        { icon: 'Рынок', name: 'Рынок' },
-        { icon: 'Таверна', name: 'Таверна' },
-        { icon: 'Кузница', name: 'Кузница' },
-        { icon: 'Тренировка', name: 'Тренировка' },
-        { icon: 'Бестиарий', name: 'Бестиарий' },
-        { icon: 'Очаг', name: 'Очаг' },
-        { icon: 'Порталы', name: 'Порталы' },
-        { icon: 'Чат', name: 'Чат' },
-        { icon: 'Профиль', name: 'Профиль' },
-        { icon: 'Рейд', name: 'Рейд' },
-        { icon: 'Подземка', name: 'Подземка' },
-        { icon: 'Сумка', name: 'Сумка' },
-        { icon: 'Настройки', name: 'Настройки' },
-        { icon: 'Таланты', name: 'Таланты' },
-        { icon: 'Ежедневные', name: 'Ежедневные' },
-        { icon: 'Кошель', name: 'Кошель' },
-        { icon: 'oak', name: 'Домой' },
-    ],
+// js/main.js — полный
+const loadingScreen = document.getElementById('loadingScreen');
+const homeScreen = document.getElementById('homeScreen');
+const playButton = document.getElementById('playButton');
+const hero = document.getElementById('hero');
+const gameCanvas = document.getElementById('game');
+
+let currentScreen = 'loading';
+
+playButton.addEventListener('click', () => {
+    loadingScreen.style.display = 'none';
+    homeScreen.style.display = 'block';
+    currentScreen = 'home';
     
-    currentIndex: 0,
-    canvas: null,
-    ctx: null,
-    W: 0,
-    H: 0,
-    iconRect: { x: 0, y: 0, w: 0, h: 0 },
-    running: false,
-    leftArrow: null,
-    rightArrow: null,
-    wallImage: null,
+    const video = document.getElementById('videoBackground');
+    video.play().catch(() => {});
+});
+
+hero.addEventListener('click', () => {
+    homeScreen.style.display = 'none';
+    gameCanvas.style.display = 'block';
+    currentScreen = 'game';
     
-    init() {
-        this.canvas = document.getElementById('game');
-        this.ctx = this.canvas.getContext('2d');
-        this.W = window.innerWidth;
-        this.H = window.innerHeight;
-        this.canvas.width = this.W;
-        this.canvas.height = this.H;
-        
-        this.leftArrow = new Image();
-        this.leftArrow.src = 'assets/icons/left.png';
-        this.rightArrow = new Image();
-        this.rightArrow.src = 'assets/icons/right.png';
-        this.wallImage = new Image();
-        this.wallImage.src = 'assets/Sherwood_Square/wall_area_1.png';
-        
-        window.addEventListener('resize', () => this.resize());
-        this.canvas.addEventListener('click', (e) => this.handleClick(e));
-        this.canvas.addEventListener('touchstart', (e) => this.handleTouch(e));
-        
-        this.running = true;
-        this.render();
-    },
+    AudioManager.playCityTheme();
     
-    resize() {
-        this.W = window.innerWidth;
-        this.H = window.innerHeight;
-        this.canvas.width = this.W;
-        this.canvas.height = this.H;
-    },
+    Textures.load(() => {
+        Menu.init();
+    });
+});
+
+function showHomeScreen() {
+    Menu.destroy();
+    homeScreen.style.display = 'block';
+    gameCanvas.style.display = 'none';
+    currentScreen = 'home';
     
-    next() {
-        this.currentIndex = (this.currentIndex + 1) % this.buildings.length;
-    },
+    const video = document.getElementById('videoBackground');
+    video.play().catch(() => {});
+}
+
+function showSectionScreen(building) {
+    const backgrounds = {
+        'Таверна': 'assets/backgrounds/section_tavern.png',
+        'Порталы': 'assets/backgrounds/portal.png',
+        'Чат': 'assets/backgrounds/chat_background.png',
+        'Рейд': 'assets/backgrounds/background_raid.png',
+        'Арена': 'assets/backgrounds/pvp_arena.png',
+        'Квесты': 'assets/backgrounds/quest.png',
+        'Ежедневные': 'assets/backgrounds/tasks_day.png',
+        'Кузница': 'assets/backgrounds/forge.png',
+        'Тренировка': 'assets/backgrounds/training.png',
+        'Бестиарий': 'assets/backgrounds/bestiary_visual.png',
+        'Очаг': 'assets/backgrounds/fireplace_visual.png',
+        'Профиль': 'assets/backgrounds/profile_visual.png',
+        'Сумка': 'assets/backgrounds/bag.png',
+        'Настройки': 'assets/backgrounds/settings_visual.png',
+        'Таланты': 'assets/backgrounds/visual_talents.png',
+        'Рынок': 'assets/backgrounds/market.png',
+        'Кошель': 'assets/backgrounds/wallet_vis.png',
+    };
     
-    prev() {
-        this.currentIndex = (this.currentIndex - 1 + this.buildings.length) % this.buildings.length;
-    },
+    const bg = backgrounds[building.icon] || '';
     
-    interact() {
-        const building = this.buildings[this.currentIndex];
-        if (building.icon === 'oak') {
-            if (typeof showHomeScreen === 'function') showHomeScreen();
-        } else if (building.icon === 'Подземка') {
-            if (typeof showDungeonScreen === 'function') showDungeonScreen();
-        } else {
-            if (typeof showSectionScreen === 'function') showSectionScreen(building);
-        }
-    },
+    const screenHTML = `
+    <div id="section-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:100;background:url('${bg}') center/cover no-repeat;display:flex;flex-direction:column;">
+        <div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(0,0,0,0.5);">
+            <button onclick="closeSectionScreen()" style="background:transparent;border:none;cursor:pointer;padding:0;width:50px;height:50px;">
+                <img src="assets/icons/back.png" style="width:100%;height:100%;object-fit:contain;">
+            </button>
+            <span style="color:#e0c080;font-size:1.2em;text-shadow:0 0 10px #000;">${building.name}</span>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:20px;">
+        </div>
+    </div>`;
     
-    handleClick(e) {
-        const rect = this.canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        this.processTap(x, y);
-    },
+    document.body.insertAdjacentHTML('beforeend', screenHTML);
+}
+
+function closeSectionScreen() {
+    const screen = document.getElementById('section-screen');
+    if (screen) screen.remove();
+}
+
+function showDungeonScreen() {
+    const screenHTML = `
+    <div id="dungeon-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:100;background:url('assets/backgrounds/sherwood_thicket.png') center/cover no-repeat;display:flex;flex-direction:column;overflow:hidden;">
+        <div style="display:flex;align-items:center;gap:12px;padding:12px;flex-shrink:0;background:rgba(0,0,0,0.5);">
+            <button onclick="closeDungeonScreen()" style="background:transparent;border:none;cursor:pointer;padding:0;width:50px;height:50px;">
+                <img src="assets/icons/back.png" style="width:100%;height:100%;object-fit:contain;">
+            </button>
+            <span style="color:#e0c080;font-size:1.2em;text-shadow:0 0 10px #000;">Подземелья</span>
+        </div>
+        <div style="flex:1;overflow-y:auto;overflow-x:hidden;padding:20px;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:30px;padding-bottom:40px;">
+                <div onclick="enterDungeon('forest')" style="text-align:center;cursor:pointer;">
+                    <img src="assets/icons/the_cursed_thicket.png" style="width:180px;height:180px;object-fit:contain;display:block;margin:0 auto;">
+                    <div style="color:#e0c080;font-size:1.1em;font-weight:bold;margin-top:8px;text-shadow:0 0 10px #000;">Проклятая чаща</div>
+                </div>
+                <div onclick="enterDungeon('swamp')" style="text-align:center;cursor:pointer;">
+                    <img src="assets/icons/primordial_swamp.png" style="width:180px;height:180px;object-fit:contain;display:block;margin:0 auto;">
+                    <div style="color:#e0c080;font-size:1.1em;font-weight:bold;margin-top:8px;text-shadow:0 0 10px #000;">Первородное болото</div>
+                </div>
+                <div onclick="enterDungeon('cave')" style="text-align:center;cursor:pointer;">
+                    <img src="assets/icons/basalt_grotto.png" style="width:180px;height:180px;object-fit:contain;display:block;margin:0 auto;">
+                    <div style="color:#e0c080;font-size:1.1em;font-weight:bold;margin-top:8px;text-shadow:0 0 10px #000;">Базальтовый грот</div>
+                </div>
+            </div>
+        </div>
+    </div>`;
     
-    handleTouch(e) {
-        e.preventDefault();
-        const touch = e.touches[0];
-        const rect = this.canvas.getBoundingClientRect();
-        const x = touch.clientX - rect.left;
-        const y = touch.clientY - rect.top;
-        this.processTap(x, y);
-    },
-    
-    processTap(x, y) {
-        const arrowSize = Math.min(this.W * 0.1, 70);
-        if (x < arrowSize + 20) {
-            this.prev();
-            return;
-        }
-        if (x > this.W - arrowSize - 20) {
-            this.next();
-            return;
-        }
-        if (x >= this.iconRect.x && x <= this.iconRect.x + this.iconRect.w &&
-            y >= this.iconRect.y && y <= this.iconRect.y + this.iconRect.h) {
-            this.interact();
-        }
-    },
-    
-    render() {
-        if (!this.running) return;
-        
-        const ctx = this.ctx;
-        const W = this.W;
-        const H = this.H;
-        
-        // Потолок
-        const skyHeight = Math.floor(H * 0.25);
-        if (Textures.loaded && Textures.ceilingCanvas) {
-            ctx.drawImage(Textures.ceilingCanvas, 0, 0, W, skyHeight);
-        } else {
-            ctx.fillStyle = '#1a1208';
-            ctx.fillRect(0, 0, W, skyHeight);
-        }
-        
-        // Стена — один файл
-        const wallHeight = Math.floor(H * 0.5);
-        const wallY = skyHeight;
-        if (this.wallImage && this.wallImage.complete && this.wallImage.naturalWidth > 0) {
-            ctx.drawImage(this.wallImage, 0, wallY, W, wallHeight);
-        } else {
-            ctx.fillStyle = '#3a2a1a';
-            ctx.fillRect(0, wallY, W, wallHeight);
-        }
-        
-        // Пол
-        const floorY = wallY + wallHeight;
-        if (Textures.loaded && Textures.floorCanvas) {
-            ctx.drawImage(Textures.floorCanvas, 0, floorY, W, H - floorY);
-        } else {
-            ctx.fillStyle = '#2a1a0a';
-            ctx.fillRect(0, floorY, W, H - floorY);
-        }
-        
-        // Иконка
-        const building = this.buildings[this.currentIndex];
-        const iconSize = Math.min(H * 0.35, W * 0.35);
-        const sx = W / 2 - iconSize / 2;
-        const sy = wallY + wallHeight / 2 - iconSize / 2;
-        this.iconRect = { x: sx, y: sy, w: iconSize, h: iconSize };
-        
-        if (building.icon === 'oak' && Textures.oak) {
-            ctx.drawImage(Textures.oak, sx, sy, iconSize, iconSize);
-        } else if (Textures.buildings[building.icon]) {
-            ctx.drawImage(Textures.buildings[building.icon], sx, sy, iconSize, iconSize);
-        }
-        
-        // Табличка
-        if (Textures.buildings['all_stat']) {
-            const signW = iconSize * 1.2;
-            const signH = iconSize * 0.25;
-            ctx.drawImage(Textures.buildings['all_stat'], W/2 - signW/2, sy + iconSize + 10, signW, signH);
-            ctx.fillStyle = '#e8d8c0';
-            ctx.font = `bold ${Math.floor(signH*0.5)}px "Times New Roman", serif`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(building.name, W/2, sy + iconSize + 10 + signH/2);
-        }
-        
-        // Стрелки
-        const arrowSize = Math.min(W * 0.1, 70);
-        if (this.leftArrow && this.leftArrow.complete) {
-            ctx.drawImage(this.leftArrow, 20, H/2 - arrowSize/2, arrowSize, arrowSize);
-        }
-        if (this.rightArrow && this.rightArrow.complete) {
-            ctx.drawImage(this.rightArrow, W - 20 - arrowSize, H/2 - arrowSize/2, arrowSize, arrowSize);
-        }
-        
-        requestAnimationFrame(() => this.render());
-    },
-    
-    destroy() {
-        this.running = false;
-    }
-};
+    document.body.insertAdjacentHTML('beforeend', screenHTML);
+}
+
+function closeDungeonScreen() {
+    const screen = document.getElementById('dungeon-screen');
+    if (screen) screen.remove();
+}
+
+function enterDungeon(dungeonId) {
+    closeDungeonScreen();
+    alert('Вход в подземку: ' + dungeonId);
+}
