@@ -33,8 +33,7 @@ const Menu = {
     rightArrow: null,
     wallImage: null,
     ceilingImage: null,
-    floorImages: [],
-    currentFloorIndex: 0,
+    floorImage: null,
     stepVideo: null,
     stepTimer: null,
     
@@ -54,13 +53,8 @@ const Menu = {
         this.wallImage.src = 'assets/Sherwood_Square/wall_area_1.png';
         this.ceilingImage = new Image();
         this.ceilingImage.src = 'assets/Sherwood_Square/area_ceiling_moon.png';
-        
-        // Загружаем все полы
-        for (let i = 1; i <= 6; i++) {
-            const img = new Image();
-            img.src = `assets/Sherwood_Square/floor_area_${i}.png`;
-            this.floorImages.push(img);
-        }
+        this.floorImage = new Image();
+        this.floorImage.src = 'assets/Sherwood_Square/floor_area_1.png';
         
         this.stepVideo = document.createElement('video');
         this.stepVideo.src = 'assets/animation/step_up.webm';
@@ -85,13 +79,11 @@ const Menu = {
     
     next() {
         this.currentIndex = (this.currentIndex + 1) % this.buildings.length;
-        this.currentFloorIndex = (this.currentFloorIndex + 1) % this.floorImages.length;
         this.playStepAnimation();
     },
     
     prev() {
         this.currentIndex = (this.currentIndex - 1 + this.buildings.length) % this.buildings.length;
-        this.currentFloorIndex = (this.currentFloorIndex - 1 + this.floorImages.length) % this.floorImages.length;
         this.playStepAnimation();
     },
     
@@ -166,7 +158,7 @@ const Menu = {
             ctx.fillRect(0, 0, W, skyHeight);
         }
         
-        // Стена — статичная, НЕ прокручивается
+        // Стена — статичная
         const wallHeight = Math.floor(H * 0.5);
         const wallY = skyHeight;
         if (this.wallImage && this.wallImage.complete && this.wallImage.naturalWidth > 0) {
@@ -176,11 +168,10 @@ const Menu = {
             ctx.fillRect(0, wallY, W, wallHeight);
         }
         
-        // Пол — прокручивается
+        // Пол — floor_area_1.png
         const floorY = wallY + wallHeight;
-        const floorImg = this.floorImages[this.currentFloorIndex];
-        if (floorImg && floorImg.complete && floorImg.naturalWidth > 0) {
-            ctx.drawImage(floorImg, 0, floorY, W, H - floorY);
+        if (this.floorImage && this.floorImage.complete && this.floorImage.naturalWidth > 0) {
+            ctx.drawImage(this.floorImage, 0, floorY, W, H - floorY);
         } else {
             ctx.fillStyle = '#2a1a0a';
             ctx.fillRect(0, floorY, W, H - floorY);
