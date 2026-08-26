@@ -19,11 +19,12 @@ for (let y = 1; y <= 8; y++) {
     }
 }
 
+// Здания привязаны к периметру (стены)
 const buildings = [
-    { x: 1.5, y: 4.5, icon: 'Квесты', name: 'Квесты' },
-    { x: 4.5, y: 1.5, icon: 'Арена', name: 'Арена' },
-    { x: 7.5, y: 4.5, icon: 'Рынок', name: 'Рынок' },
-    { x: 4.5, y: 7.5, icon: 'Таверна', name: 'Таверна' },
+    { x: 1, y: 4, icon: 'Квесты', name: 'Квесты' },
+    { x: 4, y: 1, icon: 'Арена', name: 'Арена' },
+    { x: 7, y: 4, icon: 'Рынок', name: 'Рынок' },
+    { x: 4, y: 7, icon: 'Таверна', name: 'Таверна' },
 ];
 
 const oak = { x: 4.5, y: 4.5 };
@@ -126,7 +127,7 @@ function castRay(rayAngle) {
 function render() {
     const HORIZON = Math.floor(H * 0.35);
     
-    // Потолок (сшитое полотно)
+    // Потолок
     if (Textures.loaded && Textures.ceilingCanvas) {
         ctx.drawImage(Textures.ceilingCanvas, 0, 0, W, HORIZON);
     } else {
@@ -134,7 +135,7 @@ function render() {
         ctx.fillRect(0, 0, W, HORIZON);
     }
     
-    // Пол (сшитое полотно)
+    // Пол
     if (Textures.loaded && Textures.floorCanvas) {
         ctx.drawImage(Textures.floorCanvas, 0, HORIZON, W, H - HORIZON);
     } else {
@@ -187,7 +188,7 @@ function render() {
         zBuffer[x] = distance;
     }
     
-    // Швы (полноразмерные)
+    // Швы
     if (Textures.seamBottom && Textures.seamTop) {
         for (let x = 0; x < W; x++) {
             const cameraX = 2 * x / W - 1;
@@ -254,52 +255,26 @@ function render() {
         }
     }
     
-    // Спрайты построек
-    for (const b of buildings) {
-        const dx = b.x - player.x;
-        const dy = b.y - player.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+    // Иконка выезжает перед лицом, если игрок у здания
+    const nearBuilding = buildings.find(b => {
+        const dist = Math.sqrt((b.x + 0.5 - player.x) ** 2 + (b.y + 0.5 - player.y) ** 2);
+        return dist < 1.5;
+    });
+    
+    if (nearBuilding && Textures.buildings[nearBuilding.icon]) {
+        const size = H * 0.4;
+        const sx = W / 2 - size / 2;
+        const sy = HORIZON - size / 2;
         
-        if (distance > 12) continue;
-        
-        const angle = Math.atan2(dy, dx) - player.angle;
-        let na = angle;
-        while (na > Math.PI) na -= 2 * Math.PI;
-        while (na < -Math.PI) na += 2 * Math.PI;
-        
-        if (Math.abs(na) > FOV / 2 + 0.3) continue;
-        
-        const screenX = W / 2 + Math.tan(na) * (W / 2) / Math.tan(FOV / 2);
-        if (screenX < 0 || screenX >= W) continue;
-        
-        if (distance > zBuffer[Math.floor(screenX)] + 0.3) continue;
-        
-        const size = H / distance * 0.6;
-        if (size < 15) continue;
-        
-        const iconY = HORIZON - size / 2;
-        const iconX = screenX - size / 2;
-        
-        if (Textures.buildings[b.icon]) {
-            ctx.globalAlpha = 1;
-            ctx.drawImage(Textures.buildings[b.icon], iconX, iconY, size, size);
-            
-            if (Textures.buildings['all_stat']) {
-                const signWidth = size * 1.2;
-                const signHeight = size * 0.25;
-                const signX = screenX - signWidth / 2;
-                const signY = iconY + size;
-                
-                ctx.drawImage(Textures.buildings['all_stat'], signX, signY, signWidth, signHeight);
-                
-                ctx.fillStyle = '#e8d8c0';
-                ctx.font = `bold ${Math.floor(size * 0.1)}px "Times New Roman", serif`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(b.name, screenX, signY + signHeight / 2);
-            }
-        }
         ctx.globalAlpha = 1;
+        ctx.drawImage(Textures.buildings[nearBuilding.icon], sx, sy, size, size);
+        ctx.globalAlpha = 1;
+        
+        // Название
+        ctx.fillStyle = '#e8d8c0';
+        ctx.font = 'bold 20px "Times New Roman", serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(nearBuilding.name, W / 2, sy + size + 30);
     }
     
     // Виньетка
@@ -359,15 +334,13 @@ function turnRight() {
 }
 
 function interact() {
-    for (const b of buildings) {
-        const dx = b.x - player.x;
-        const dy = b.y - player.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        
-        if (dist < 1.5) {
-            alert('Вход в: ' + b.name);
-            return;
-        }
+    const nearBuilding = buildings.find(b => {
+        const dist = Math.sqrt((b.x + 0.5 - player.x) ** 2 + (b.y + 0.5 - player.y) ** 2);
+        return dist < 1.5;
+    });
+    
+    if (nearBuilding) {
+        alert('Вход в: ' + nearBuilding.name);
     }
 }
 
@@ -458,7 +431,20 @@ canvas.addEventListener('click', (e) => {
     
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
     
+    // Если иконка на экране - тапаем по ней
+    const nearBuilding = buildings.find(b => {
+        const dist = Math.sqrt((b.x + 0.5 - player.x) ** 2 + (b.y + 0.5 - player.y) ** 2);
+        return dist < 1.5;
+    });
+    
+    if (nearBuilding) {
+        interact();
+        return;
+    }
+    
+    // Иначе - управление
     if (x < W / 3) {
         turnLeft();
     } else if (x > W * 2 / 3) {
