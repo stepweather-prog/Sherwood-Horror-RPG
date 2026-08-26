@@ -1,4 +1,4 @@
-// js/menu.js — полный файл
+// js/menu.js — полный файл, стена из одного файла
 const Menu = {
     buildings: [
         { icon: 'Квесты', name: 'Квесты' },
