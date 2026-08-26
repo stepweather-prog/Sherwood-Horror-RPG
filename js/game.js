@@ -18,29 +18,29 @@ for (let y = 1; y <= 10; y++) {
     }
 }
 
-// Секции пола: 4 зоны вокруг дуба
-const sections = {
-    north: { x1: 4, y1: 1, x2: 7, y2: 4 },
-    south: { x1: 4, y1: 7, x2: 7, y2: 10 },
-    west: { x1: 1, y1: 4, x2: 4, y2: 7 },
-    east: { x1: 7, y1: 4, x2: 10, y2: 7 },
-};
-
-// Дуб привязан к центральной секции
+// Дуб в центре
 const oak = { x: 5.5, y: 5.5 };
 
-// Иконки на стенах (привязаны к периметру)
+// Иконки на стенах — каждая в своей клетке периметра
 const buildings = [
-    { x: 2, y: 0, icon: 'Квесты', name: 'Квесты' },
-    { x: 5, y: 0, icon: 'Арена', name: 'Арена' },
-    { x: 8, y: 0, icon: 'Рынок', name: 'Рынок' },
-    { x: 10, y: 3, icon: 'Таверна', name: 'Таверна' },
-    { x: 10, y: 7, icon: 'Кузница', name: 'Кузница' },
-    { x: 8, y: 10, icon: 'Тренировка', name: 'Тренировка' },
-    { x: 5, y: 10, icon: 'Бестиарий', name: 'Бестиарий' },
-    { x: 2, y: 10, icon: 'Очаг', name: 'Очаг' },
-    { x: 0, y: 7, icon: 'Порталы', name: 'Порталы' },
-    { x: 0, y: 3, icon: 'Чат', name: 'Чат' },
+    { x: 1, y: 0, icon: 'Квесты', name: 'Квесты' },
+    { x: 3, y: 0, icon: 'Арена', name: 'Арена' },
+    { x: 5, y: 0, icon: 'Рынок', name: 'Рынок' },
+    { x: 7, y: 0, icon: 'Таверна', name: 'Таверна' },
+    { x: 9, y: 0, icon: 'Кузница', name: 'Кузница' },
+    { x: 10, y: 2, icon: 'Тренировка', name: 'Тренировка' },
+    { x: 10, y: 4, icon: 'Бестиарий', name: 'Бестиарий' },
+    { x: 10, y: 6, icon: 'Очаг', name: 'Очаг' },
+    { x: 10, y: 8, icon: 'Порталы', name: 'Порталы' },
+    { x: 9, y: 10, icon: 'Чат', name: 'Чат' },
+    { x: 7, y: 10, icon: 'Профиль', name: 'Профиль' },
+    { x: 5, y: 10, icon: 'Рейд', name: 'Рейд' },
+    { x: 3, y: 10, icon: 'Подземка', name: 'Подземка' },
+    { x: 1, y: 10, icon: 'Сумка', name: 'Сумка' },
+    { x: 0, y: 8, icon: 'Настройки', name: 'Настройки' },
+    { x: 0, y: 6, icon: 'Таланты', name: 'Таланты' },
+    { x: 0, y: 4, icon: 'Бестиарий', name: 'Бестиарий' },
+    { x: 0, y: 2, icon: 'Ежедневные', name: 'Ежедневные' },
 ];
 
 const player = {
@@ -239,7 +239,7 @@ function render() {
         }
     }
     
-    // Дуб привязан к центру
+    // Дуб
     if (Textures.loaded && Textures.oak) {
         const oakDist = Math.sqrt((oak.x - player.x) ** 2 + (oak.y - player.y) ** 2);
         
@@ -296,27 +296,6 @@ function render() {
             ctx.drawImage(Textures.buildings[b.icon], sx, sy, size, size);
         }
         ctx.globalAlpha = 1;
-    }
-    
-    // Тап-зона для иконки
-    const nearBuilding = buildings.find(b => {
-        const dist = Math.sqrt((b.x + 0.5 - player.x) ** 2 + (b.y + 0.5 - player.y) ** 2);
-        return dist < 2;
-    });
-    
-    if (nearBuilding && Textures.buildings[nearBuilding.icon]) {
-        const size = H * 0.5;
-        const sx = W / 2 - size / 2;
-        const sy = HORIZON - size / 2;
-        
-        ctx.globalAlpha = 0.7;
-        ctx.drawImage(Textures.buildings[nearBuilding.icon], sx, sy, size, size);
-        ctx.globalAlpha = 1;
-        
-        ctx.fillStyle = '#e8d8c0';
-        ctx.font = 'bold 20px "Times New Roman", serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(nearBuilding.name + ' — тапни', W / 2, sy + size + 30);
     }
     
     const v = ctx.createRadialGradient(W/2, H/2, H/4, W/2, H/2, H * 0.75);
@@ -415,13 +394,13 @@ function turnRight() {
 }
 
 function interact() {
-    const nearBuilding = buildings.find(b => {
-        const dist = Math.sqrt((b.x + 0.5 - player.x) ** 2 + (b.y + 0.5 - player.y) ** 2);
-        return dist < 2;
-    });
+    const frontX = Math.round(player.x + Math.cos(player.angle));
+    const frontY = Math.round(player.y + Math.sin(player.angle));
     
-    if (nearBuilding) {
-        alert('Вход в: ' + nearBuilding.name);
+    const building = buildings.find(b => b.x === frontX && b.y === frontY);
+    
+    if (building) {
+        alert('Вход в: ' + building.name);
     }
 }
 
@@ -464,21 +443,7 @@ document.getElementById('city-back').addEventListener('click', () => { player.an
 
 canvas.addEventListener('click', (e) => {
     if (currentScreen !== 'game') return;
-    
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    // Проверяем тап по иконке (центр экрана)
-    const nearBuilding = buildings.find(b => {
-        const dist = Math.sqrt((b.x + 0.5 - player.x) ** 2 + (b.y + 0.5 - player.y) ** 2);
-        return dist < 2;
-    });
-    
-    if (nearBuilding) {
-        interact();
-        return;
-    }
+    interact();
 });
 
 document.addEventListener('keydown', (e) => {
