@@ -126,27 +126,17 @@ function castRay(rayAngle) {
 function render() {
     const HORIZON = Math.floor(H * 0.35);
     
-    // Потолок
-    if (Textures.loaded) {
-        const mapX = Math.floor(player.x);
-        const mapY = Math.floor(player.y);
-        const ceilingTex = Textures.getCeilingTexture(mapX, mapY);
-        if (ceilingTex) {
-            ctx.drawImage(ceilingTex, 0, 0, W, HORIZON);
-        }
+    // Потолок (сшитое полотно)
+    if (Textures.loaded && Textures.ceilingCanvas) {
+        ctx.drawImage(Textures.ceilingCanvas, 0, 0, W, HORIZON);
     } else {
         ctx.fillStyle = '#0d0d0d';
         ctx.fillRect(0, 0, W, HORIZON);
     }
     
-    // Пол
-    if (Textures.loaded) {
-        const mapX = Math.floor(player.x);
-        const mapY = Math.floor(player.y);
-        const floorTex = Textures.getFloorTexture(mapX, mapY);
-        if (floorTex) {
-            ctx.drawImage(floorTex, 0, HORIZON, W, H - HORIZON);
-        }
+    // Пол (сшитое полотно)
+    if (Textures.loaded && Textures.floorCanvas) {
+        ctx.drawImage(Textures.floorCanvas, 0, HORIZON, W, H - HORIZON);
     } else {
         ctx.fillStyle = '#2a2218';
         ctx.fillRect(0, HORIZON, W, H - HORIZON);
@@ -165,7 +155,7 @@ function render() {
         const drawEnd = Math.min(H, HORIZON + lineHeight / 2);
         
         if (Textures.loaded && wallType !== 0) {
-            const wallTex = Textures.getWallTexture(result.mapX, result.mapY);
+            const wallTex = Textures.walls[0];
             
             if (wallTex) {
                 let wallX;
@@ -197,7 +187,7 @@ function render() {
         zBuffer[x] = distance;
     }
     
-    // Швы (полноразмерные, как стены)
+    // Швы (полноразмерные)
     if (Textures.seamBottom && Textures.seamTop) {
         for (let x = 0; x < W; x++) {
             const cameraX = 2 * x / W - 1;
