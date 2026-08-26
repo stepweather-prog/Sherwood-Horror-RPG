@@ -126,30 +126,29 @@ function castRay(rayAngle) {
 function render() {
     const HORIZON = Math.floor(H * 0.35);
     
+    // Потолок
     if (Textures.loaded) {
         const ceilingTex = Textures.getCeilingTexture(Math.floor(player.x), Math.floor(player.y));
         if (ceilingTex) {
-            const shiftX = Math.floor(player.x * 100) % ceilingTex.width;
-            const shiftY = Math.floor(player.y * 100) % ceilingTex.height;
-            ctx.drawImage(ceilingTex, shiftX, shiftY, W, HORIZON, 0, 0, W, HORIZON);
+            ctx.drawImage(ceilingTex, 0, 0, W, HORIZON);
         }
     } else {
         ctx.fillStyle = '#0d0d0d';
         ctx.fillRect(0, 0, W, HORIZON);
     }
     
+    // Пол
     if (Textures.loaded) {
         const floorTex = Textures.getFloorTexture(Math.floor(player.x), Math.floor(player.y));
         if (floorTex) {
-            const shiftX = Math.floor(player.x * 100) % floorTex.width;
-            const shiftY = Math.floor(player.y * 100) % floorTex.height;
-            ctx.drawImage(floorTex, shiftX, shiftY, W, H - HORIZON, 0, HORIZON, W, H - HORIZON);
+            ctx.drawImage(floorTex, 0, HORIZON, W, H - HORIZON);
         }
     } else {
         ctx.fillStyle = '#2a2218';
         ctx.fillRect(0, HORIZON, W, H - HORIZON);
     }
     
+    // Стены
     for (let x = 0; x < W; x++) {
         const cameraX = 2 * x / W - 1;
         const rayAngle = player.angle + Math.atan(cameraX * Math.tan(FOV / 2));
@@ -194,6 +193,7 @@ function render() {
         zBuffer[x] = distance;
     }
     
+    // Дуб
     if (Textures.loaded && Textures.oak) {
         const oakDist = Math.sqrt((oak.x - player.x) ** 2 + (oak.y - player.y) ** 2);
         
@@ -219,6 +219,7 @@ function render() {
         }
     }
     
+    // Спрайты построек
     for (const b of buildings) {
         const dx = b.x - player.x;
         const dy = b.y - player.y;
@@ -248,16 +249,26 @@ function render() {
             ctx.globalAlpha = 1;
             ctx.drawImage(Textures.buildings[b.icon], sx, sy, size, size);
             
-            if (distance < 2.5) {
+            // Табличка с названием
+            if (Textures.buildings['all_stat']) {
+                const signWidth = size * 1.2;
+                const signHeight = size * 0.3;
+                const signX = screenX - signWidth / 2;
+                const signY = sy - signHeight;
+                
+                ctx.drawImage(Textures.buildings['all_stat'], signX, signY, signWidth, signHeight);
+                
                 ctx.fillStyle = '#e8d8c0';
-                ctx.font = 'bold 16px "Times New Roman", serif';
+                ctx.font = `bold ${Math.floor(size * 0.12)}px "Times New Roman", serif`;
                 ctx.textAlign = 'center';
-                ctx.fillText(b.name, screenX, sy - 10);
+                ctx.textBaseline = 'middle';
+                ctx.fillText(b.name, screenX, signY + signHeight / 2);
             }
         }
         ctx.globalAlpha = 1;
     }
     
+    // Виньетка
     const v = ctx.createRadialGradient(W/2, H/2, H/4, W/2, H/2, H * 0.75);
     v.addColorStop(0, 'rgba(0,0,0,0)');
     v.addColorStop(1, 'rgba(0,0,0,0.6)');
