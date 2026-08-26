@@ -4,6 +4,8 @@ const Textures = {
     walls: [],
     oak: null,
     buildings: {},
+    seamBottom: null,
+    seamTop: null,
     
     floorTiles: [],
     ceilingTiles: [],
@@ -49,6 +51,17 @@ const Textures = {
             this.checkLoaded(callback);
         });
         
+        // Швы
+        this.loadImage('assets/game_details/seam_bottom.png', (img) => {
+            this.seamBottom = img;
+            this.checkLoaded(callback);
+        });
+        
+        this.loadImage('assets/game_details/seam_top.png', (img) => {
+            this.seamTop = img;
+            this.checkLoaded(callback);
+        });
+        
         // Иконки зданий
         const buildingIcons = {
             'Чат': 'chat_button.png',
@@ -68,7 +81,7 @@ const Textures = {
             'all_stat': 'all_stat.png',
         };
         
-        this.totalTextures = 6 + 12 + 5 + 1 + Object.keys(buildingIcons).length;
+        this.totalTextures = 6 + 12 + 5 + 1 + 2 + Object.keys(buildingIcons).length;
         
         for (const [name, file] of Object.entries(buildingIcons)) {
             this.loadImage(`assets/icons/${file}`, (img) => {
