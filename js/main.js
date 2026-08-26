@@ -52,6 +52,7 @@ function showSectionScreen(building) {
     'Настройки': 'assets/backgrounds/settings_visual.png',
     'Таланты': 'assets/backgrounds/visual_talents.png',
     'Рынок': 'assets/backgrounds/market.png',
+    'Кошель': 'assets/backgrounds/wallet_vis.png',   
 };
     
     const bg = backgrounds[building.icon] || '';
