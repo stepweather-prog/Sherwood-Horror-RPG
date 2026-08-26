@@ -128,7 +128,9 @@ function render() {
     
     // Потолок
     if (Textures.loaded) {
-        const ceilingTex = Textures.getCeilingTexture(Math.floor(player.x), Math.floor(player.y));
+        const mapX = Math.floor(player.x);
+        const mapY = Math.floor(player.y);
+        const ceilingTex = Textures.getCeilingTexture(mapX, mapY);
         if (ceilingTex) {
             ctx.drawImage(ceilingTex, 0, 0, W, HORIZON);
         }
@@ -139,7 +141,9 @@ function render() {
     
     // Пол
     if (Textures.loaded) {
-        const floorTex = Textures.getFloorTexture(Math.floor(player.x), Math.floor(player.y));
+        const mapX = Math.floor(player.x);
+        const mapY = Math.floor(player.y);
+        const floorTex = Textures.getFloorTexture(mapX, mapY);
         if (floorTex) {
             ctx.drawImage(floorTex, 0, HORIZON, W, H - HORIZON);
         }
@@ -193,7 +197,7 @@ function render() {
         zBuffer[x] = distance;
     }
     
-    // Дуб
+    // Дуб (только если перед игроком)
     if (Textures.loaded && Textures.oak) {
         const oakDist = Math.sqrt((oak.x - player.x) ** 2 + (oak.y - player.y) ** 2);
         
@@ -203,7 +207,7 @@ function render() {
             while (na > Math.PI) na -= 2 * Math.PI;
             while (na < -Math.PI) na += 2 * Math.PI;
             
-            if (Math.abs(na) < FOV / 2 + 0.3) {
+            if (Math.abs(na) < FOV / 2) {
                 const screenX = W / 2 + Math.tan(na) * (W / 2) / Math.tan(FOV / 2);
                 
                 if (screenX >= 0 && screenX < W && oakDist < zBuffer[Math.floor(screenX)] + 0.5) {
