@@ -7,9 +7,8 @@ const Textures = {
     seamBottom: null,
     seamTop: null,
     
-    floorTiles: [],
-    ceilingTiles: [],
-    wallTiles: [],
+    floorCanvas: null,
+    ceilingCanvas: null,
     
     loaded: false,
     totalTextures: 0,
@@ -101,51 +100,34 @@ const Textures = {
         img.src = src;
     },
     
-    generateTileMaps() {
-        this.floorTiles = this.generateMap(6);
-        this.ceilingTiles = this.generateMap(12);
-        this.wallTiles = this.generateMap(5);
+    createFloorCanvas() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1024 * 3;
+        canvas.height = 1024 * 2;
+        const c = canvas.getContext('2d');
         
-        // Луна — в центре карты (клетка 4,4)
-        this.ceilingTiles[4][4] = 11; // Индекс 11 = луна (12-я текстура)
+        for (let i = 0; i < this.floor.length; i++) {
+            const x = (i % 3) * 1024;
+            const y = Math.floor(i / 3) * 1024;
+            c.drawImage(this.floor[i], x, y, 1024, 1024);
+        }
+        
+        return canvas;
     },
     
-    generateMap(textureCount) {
-        const tiles = [];
-        for (let y = 0; y < 10; y++) {
-            tiles[y] = [];
-            for (let x = 0; x < 10; x++) {
-                tiles[y][x] = Math.floor(Math.random() * textureCount);
-            }
+    createCeilingCanvas() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1024 * 4;
+        canvas.height = 1024 * 3;
+        const c = canvas.getContext('2d');
+        
+        for (let i = 0; i < this.ceiling.length; i++) {
+            const x = (i % 4) * 1024;
+            const y = Math.floor(i / 4) * 1024;
+            c.drawImage(this.ceiling[i], x, y, 1024, 1024);
         }
-        return tiles;
-    },
-    
-    getFloorTexture(mapX, mapY) {
-        if (mapY >= 0 && mapY < 10 && mapX >= 0 && mapX < 10) {
-            const idx = this.floorTiles[mapY]?.[mapX];
-            if (idx !== undefined && this.floor[idx]) {
-                return this.floor[idx];
-            }
-        }
-        return this.floor[0] || null;
-    },
-    
-    getCeilingTexture(mapX, mapY) {
-        if (mapY >= 0 && mapY < 10 && mapX >= 0 && mapX < 10) {
-            const idx = this.ceilingTiles[mapY]?.[mapX];
-            if (idx !== undefined && this.ceiling[idx]) {
-                return this.ceiling[idx];
-            }
-        }
-        return this.ceiling[0] || null;
-    },
-    
-    getWallTexture(mapX, mapY) {
-        if (this.walls.length > 0) {
-            return this.walls[0];
-        }
-        return null;
+        
+        return canvas;
     },
     
     checkLoaded(callback) {
@@ -153,7 +135,8 @@ const Textures = {
         
         if (this.loadedTextures >= this.totalTextures) {
             this.loaded = true;
-            this.generateTileMaps();
+            this.floorCanvas = this.createFloorCanvas();
+            this.ceilingCanvas = this.createCeilingCanvas();
             console.log('Все текстуры загружены!');
             if (callback) callback();
         }
