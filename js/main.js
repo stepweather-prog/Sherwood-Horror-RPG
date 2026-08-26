@@ -1,3 +1,4 @@
+// js/main.js
 const loadingScreen = document.getElementById('loadingScreen');
 const homeScreen = document.getElementById('homeScreen');
 const playButton = document.getElementById('playButton');
@@ -21,7 +22,14 @@ hero.addEventListener('click', () => {
     currentScreen = 'game';
     
     AudioManager.playCityTheme();
-    Menu.init();
+    
+    if (Textures.loaded) {
+        Menu.init();
+    } else {
+        Textures.load(() => {
+            Menu.init();
+        });
+    }
 });
 
 function showHomeScreen() {
@@ -36,24 +44,24 @@ function showHomeScreen() {
 
 function showSectionScreen(building) {
     const backgrounds = {
-    'Таверна': 'assets/backgrounds/section_tavern.png',
-    'Порталы': 'assets/backgrounds/portal.png',
-    'Чат': 'assets/backgrounds/chat_background.png',
-    'Рейд': 'assets/backgrounds/background_raid.png',
-    'Арена': 'assets/backgrounds/pvp_arena.png',
-    'Квесты': 'assets/backgrounds/quest.png',
-    'Ежедневные': 'assets/backgrounds/tasks_day.png',
-    'Кузница': 'assets/backgrounds/forge.png',
-    'Тренировка': 'assets/backgrounds/training.png',
-    'Бестиарий': 'assets/backgrounds/bestiary_visual.png',
-    'Очаг': 'assets/backgrounds/fireplace_visual.png',
-    'Профиль': 'assets/backgrounds/profile_visual.png',
-    'Сумка': 'assets/backgrounds/bag.png',
-    'Настройки': 'assets/backgrounds/settings_visual.png',
-    'Таланты': 'assets/backgrounds/visual_talents.png',
-    'Рынок': 'assets/backgrounds/market.png',
-    'Кошель': 'assets/backgrounds/wallet_vis.png',   
-};
+        'Таверна': 'assets/backgrounds/section_tavern.png',
+        'Порталы': 'assets/backgrounds/portal.png',
+        'Чат': 'assets/backgrounds/chat_background.png',
+        'Рейд': 'assets/backgrounds/background_raid.png',
+        'Арена': 'assets/backgrounds/pvp_arena.png',
+        'Квесты': 'assets/backgrounds/quest.png',
+        'Ежедневные': 'assets/backgrounds/tasks_day.png',
+        'Кузница': 'assets/backgrounds/forge.png',
+        'Тренировка': 'assets/backgrounds/training.png',
+        'Бестиарий': 'assets/backgrounds/bestiary_visual.png',
+        'Очаг': 'assets/backgrounds/fireplace_visual.png',
+        'Профиль': 'assets/backgrounds/profile_visual.png',
+        'Сумка': 'assets/backgrounds/bag.png',
+        'Настройки': 'assets/backgrounds/settings_visual.png',
+        'Таланты': 'assets/backgrounds/visual_talents.png',
+        'Рынок': 'assets/backgrounds/market.png',
+        'Кошель': 'assets/backgrounds/wallet_vis.png',
+    };
     
     const bg = backgrounds[building.icon] || '';
     
@@ -82,7 +90,7 @@ function showDungeonScreen() {
     <div id="dungeon-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:100;background:url('assets/backgrounds/sherwood_thicket.png') center/cover no-repeat;display:flex;flex-direction:column;overflow:hidden;">
         <div style="display:flex;align-items:center;gap:12px;padding:12px;flex-shrink:0;background:rgba(0,0,0,0.5);">
             <button onclick="closeDungeonScreen()" style="background:transparent;border:none;cursor:pointer;padding:0;width:50px;height:50px;">
-                <img src="assets/all_buttons/back.png" style="width:100%;height:100%;object-fit:contain;">
+                <img src="assets/icons/back.png" style="width:100%;height:100%;object-fit:contain;">
             </button>
             <span style="color:#e0c080;font-size:1.2em;text-shadow:0 0 10px #000;">Подземелья</span>
         </div>
