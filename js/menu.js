@@ -32,6 +32,9 @@ const Menu = {
     leftArrow: null,
     rightArrow: null,
     wallImage: null,
+    ceilingImage: null,
+    floorImage: null,
+    stepVideo: null,
     
     init() {
         this.canvas = document.getElementById('game');
@@ -47,6 +50,16 @@ const Menu = {
         this.rightArrow.src = 'assets/icons/right.png';
         this.wallImage = new Image();
         this.wallImage.src = 'assets/Sherwood_Square/wall_area_1.png';
+        this.ceilingImage = new Image();
+        this.ceilingImage.src = 'assets/Sherwood_Square/area_ceiling_moon.png';
+        this.floorImage = new Image();
+        this.floorImage.src = 'assets/Sherwood_Square/floor_area_1.png';
+        
+        this.stepVideo = document.createElement('video');
+        this.stepVideo.src = 'assets/animation/step_up.webm';
+        this.stepVideo.loop = true;
+        this.stepVideo.muted = true;
+        this.stepVideo.playsInline = true;
         
         window.addEventListener('resize', () => this.resize());
         this.canvas.addEventListener('click', (e) => this.handleClick(e));
@@ -65,10 +78,19 @@ const Menu = {
     
     next() {
         this.currentIndex = (this.currentIndex + 1) % this.buildings.length;
+        this.playStepAnimation();
     },
     
     prev() {
         this.currentIndex = (this.currentIndex - 1 + this.buildings.length) % this.buildings.length;
+        this.playStepAnimation();
+    },
+    
+    playStepAnimation() {
+        if (this.stepVideo) {
+            this.stepVideo.currentTime = 0;
+            this.stepVideo.play().catch(() => {});
+        }
     },
     
     interact() {
@@ -121,16 +143,16 @@ const Menu = {
         const W = this.W;
         const H = this.H;
         
-        // Потолок
+        // Потолок — луна
         const skyHeight = Math.floor(H * 0.25);
-        if (Textures.loaded && Textures.ceilingCanvas) {
-            ctx.drawImage(Textures.ceilingCanvas, 0, 0, W, skyHeight);
+        if (this.ceilingImage && this.ceilingImage.complete && this.ceilingImage.naturalWidth > 0) {
+            ctx.drawImage(this.ceilingImage, 0, 0, W, skyHeight);
         } else {
             ctx.fillStyle = '#1a1208';
             ctx.fillRect(0, 0, W, skyHeight);
         }
         
-        // Стена
+        // Стена — статичная
         const wallHeight = Math.floor(H * 0.5);
         const wallY = skyHeight;
         if (this.wallImage && this.wallImage.complete && this.wallImage.naturalWidth > 0) {
@@ -142,16 +164,30 @@ const Menu = {
         
         // Пол
         const floorY = wallY + wallHeight;
-        if (Textures.loaded && Textures.floorCanvas) {
-            ctx.drawImage(Textures.floorCanvas, 0, floorY, W, H - floorY);
+        if (this.floorImage && this.floorImage.complete && this.floorImage.naturalWidth > 0) {
+            ctx.drawImage(this.floorImage, 0, floorY, W, H - floorY);
         } else {
             ctx.fillStyle = '#2a1a0a';
             ctx.fillRect(0, floorY, W, H - floorY);
         }
         
+        // Разделители
+        if (Textures.seamTop) {
+            ctx.drawImage(Textures.seamTop, 0, wallY - 10, W, 20);
+        }
+        if (Textures.seamBottom) {
+            ctx.drawImage(Textures.seamBottom, 0, floorY - 10, W, 20);
+        }
+        
+        // Анимация шага на полу
+        if (this.stepVideo && this.stepVideo.readyState >= 2 && !this.stepVideo.paused) {
+            const videoSize = Math.min(W * 0.3, H * 0.3);
+            ctx.drawImage(this.stepVideo, W/2 - videoSize/2, floorY - videoSize/2, videoSize, videoSize);
+        }
+        
         // Иконка
         const building = this.buildings[this.currentIndex];
-        const iconSize = Math.min(H * 0.35, W * 0.35);
+        const iconSize = Math.min(H * 0.3, W * 0.3);
         const sx = W / 2 - iconSize / 2;
         const sy = wallY + wallHeight / 2 - iconSize / 2;
         this.iconRect = { x: sx, y: sy, w: iconSize, h: iconSize };
@@ -166,12 +202,12 @@ const Menu = {
         if (Textures.buildings['all_stat']) {
             const signW = iconSize * 1.2;
             const signH = iconSize * 0.25;
-            ctx.drawImage(Textures.buildings['all_stat'], W/2 - signW/2, sy + iconSize + 10, signW, signH);
+            ctx.drawImage(Textures.buildings['all_stat'], W/2 - signW/2, sy + iconSize + 5, signW, signH);
             ctx.fillStyle = '#e8d8c0';
             ctx.font = `bold ${Math.floor(signH*0.5)}px "Times New Roman", serif`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText(building.name, W/2, sy + iconSize + 10 + signH/2);
+            ctx.fillText(building.name, W/2, sy + iconSize + 5 + signH/2);
         }
         
         // Стрелки
@@ -188,5 +224,8 @@ const Menu = {
     
     destroy() {
         this.running = false;
+        if (this.stepVideo) {
+            this.stepVideo.pause();
+        }
     }
 };
