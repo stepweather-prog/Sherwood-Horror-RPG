@@ -107,10 +107,10 @@ canvas {
     bottom: -12%;
     left: 50%;
     transform: translateX(-50%);
-    width: 50%;
+    width: 44%; /* Растянута между статуями (28% + 28% = 56%, остаётся 44%) */
     height: auto;
-    object-fit: contain;
-    z-index: 3; /* ПОД статуями */
+    object-fit: fill; /* Растягиваем */
+    z-index: 3;
 }
 
 #hero {
