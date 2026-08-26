@@ -33,12 +33,11 @@ const Menu = {
     rightArrow: null,
     wallImage: null,
     ceilingImage: null,
-    floorImage: null,
+    floorImages: [],
     stepVideo: null,
     stepTimer: null,
-    rotationAngle: 0,
-    targetRotation: 0,
-    isRotating: false,
+    wallOffset: 0,
+    targetWallOffset: 0,
     
     init() {
         this.canvas = document.getElementById('game');
@@ -56,8 +55,12 @@ const Menu = {
         this.wallImage.src = 'assets/Sherwood_Square/wall_area_1.png';
         this.ceilingImage = new Image();
         this.ceilingImage.src = 'assets/Sherwood_Square/area_ceiling_moon.png';
-        this.floorImage = new Image();
-        this.floorImage.src = 'assets/Sherwood_Square/floor_area_1.png';
+        
+        for (let i = 1; i <= 3; i++) {
+            const img = new Image();
+            img.src = `assets/Sherwood_Square/floor_area_${i}.png`;
+            this.floorImages.push(img);
+        }
         
         this.stepVideo = document.createElement('video');
         this.stepVideo.src = 'assets/animation/step_up.webm';
@@ -81,18 +84,14 @@ const Menu = {
     },
     
     next() {
-        if (this.isRotating) return;
         this.currentIndex = (this.currentIndex + 1) % this.buildings.length;
-        this.targetRotation -= Math.PI / 2;
-        this.isRotating = true;
+        this.targetWallOffset -= this.W;
         this.playStepAnimation();
     },
     
     prev() {
-        if (this.isRotating) return;
         this.currentIndex = (this.currentIndex - 1 + this.buildings.length) % this.buildings.length;
-        this.targetRotation += Math.PI / 2;
-        this.isRotating = true;
+        this.targetWallOffset += this.W;
         this.playStepAnimation();
     },
     
@@ -100,11 +99,8 @@ const Menu = {
         if (this.stepVideo) {
             this.stepVideo.currentTime = 0;
             this.stepVideo.play().catch(() => {});
-            
             clearTimeout(this.stepTimer);
-            this.stepTimer = setTimeout(() => {
-                this.stepVideo.pause();
-            }, 400);
+            this.stepTimer = setTimeout(() => this.stepVideo.pause(), 400);
         }
     },
     
@@ -163,24 +159,12 @@ const Menu = {
         const W = this.W;
         const H = this.H;
         
-        // Плавный поворот
-        if (this.isRotating) {
-            const diff = this.targetRotation - this.rotationAngle;
-            if (Math.abs(diff) < 0.01) {
-                this.rotationAngle = this.targetRotation;
-                this.isRotating = false;
-            } else {
-                this.rotationAngle += diff * 0.1;
-            }
-        }
+        this.wallOffset += (this.targetWallOffset - this.wallOffset) * 0.08;
         
         // Потолок
         const skyHeight = Math.floor(H * 0.25);
         if (this.ceilingImage && this.ceilingImage.complete) {
             ctx.drawImage(this.ceilingImage, 0, 0, W, skyHeight);
-        } else {
-            ctx.fillStyle = '#1a1208';
-            ctx.fillRect(0, 0, W, skyHeight);
         }
         
         // Кнопка домой
@@ -190,68 +174,83 @@ const Menu = {
             this.homeRect = { x: 20, y: 20, w: homeSize, h: homeSize };
         }
         
-        // Стена с эффектом поворота
+        // Стена
         const wallHeight = Math.floor(H * 0.5);
         const wallY = skyHeight;
-        ctx.save();
-        ctx.translate(W/2, wallY + wallHeight/2);
-        ctx.rotate(this.rotationAngle);
-        ctx.translate(-W/2, -(wallY + wallHeight/2));
+        const wallOffsetPx = Math.abs(this.wallOffset % this.wallImage.width);
         
         if (this.wallImage && this.wallImage.complete) {
-            ctx.drawImage(this.wallImage, 0, wallY, W, wallHeight);
-        } else {
-            ctx.fillStyle = '#3a2a1a';
-            ctx.fillRect(0, wallY, W, wallHeight);
+            ctx.drawImage(this.wallImage, wallOffsetPx, 0, W, wallHeight, 0, wallY, W, wallHeight);
         }
         
-        // Иконка на стене
+        // Иконка — прибита к стене
         const building = this.buildings[this.currentIndex];
         const iconSize = Math.min(H * 0.25, W * 0.25);
-        const sx = W / 2 - iconSize / 2;
+        const iconWorldX = W/2 + this.wallOffset;
+        const iconScreenX = ((iconWorldX % this.wallImage.width) + this.wallImage.width) % this.wallImage.width;
+        
+        let drawX = iconScreenX - iconSize/2;
+        if (drawX < 0) drawX += this.wallImage.width;
+        if (drawX > W) drawX -= this.wallImage.width;
+        
         const sy = wallY + wallHeight / 2 - iconSize / 2 - 20;
-        this.iconRect = { x: sx, y: sy, w: iconSize, h: iconSize };
         
         if (Textures.buildings[building.icon]) {
-            ctx.drawImage(Textures.buildings[building.icon], sx, sy, iconSize, iconSize);
-        }
-        
-        ctx.restore();
-        
-        // Пол
-        const floorY = wallY + wallHeight;
-        if (this.floorImage && this.floorImage.complete) {
-            const tileHeight = H - floorY;
-            const tileWidth = tileHeight;
-            const count = Math.ceil(W / tileWidth) + 1;
-            for (let i = -1; i < count; i++) {
-                ctx.drawImage(this.floorImage, i * tileWidth, floorY, tileWidth, tileHeight);
-            }
-        } else {
-            ctx.fillStyle = '#2a1a0a';
-            ctx.fillRect(0, floorY, W, H - floorY);
-        }
-        
-        // Разделители
-        if (Textures.seamTop) ctx.drawImage(Textures.seamTop, 0, wallY - 10, W, 20);
-        if (Textures.seamBottom) ctx.drawImage(Textures.seamBottom, 0, floorY - 10, W, 20);
-        
-        // Анимация шага
-        if (this.stepVideo && this.stepVideo.readyState >= 2 && !this.stepVideo.paused) {
-            const videoSize = Math.min(W * 0.2, H * 0.2);
-            ctx.drawImage(this.stepVideo, W/2 - videoSize/2, floorY - videoSize/2, videoSize, videoSize);
+            ctx.drawImage(Textures.buildings[building.icon], drawX, sy, iconSize, iconSize);
+            this.iconRect = { x: drawX, y: sy, w: iconSize, h: iconSize };
         }
         
         // Табличка
         if (Textures.buildings['all_stat']) {
             const signW = iconSize * 1.1;
             const signH = iconSize * 0.22;
-            ctx.drawImage(Textures.buildings['all_stat'], W/2 - signW/2, sy + iconSize + 15, signW, signH);
+            ctx.drawImage(Textures.buildings['all_stat'], drawX + iconSize/2 - signW/2, sy + iconSize + 15, signW, signH);
             ctx.fillStyle = '#e8d8c0';
             ctx.font = `bold ${Math.floor(signH*0.45)}px "Times New Roman", serif`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText(building.name, W/2, sy + iconSize + 15 + signH/2);
+            ctx.fillText(building.name, drawX + iconSize/2, sy + iconSize + 15 + signH/2);
+        }
+        
+        // Пол — три плиты
+        const floorY = wallY + wallHeight;
+        const tileHeight = H - floorY;
+        const tileWidth = tileHeight;
+        const floorOffsetPx = Math.abs(this.wallOffset % (tileWidth * 3));
+        
+        for (let i = -1; i < Math.ceil(W / tileWidth) + 2; i++) {
+            const imgIndex = Math.abs((i + Math.floor(this.wallOffset / tileWidth)) % 3);
+            const img = this.floorImages[imgIndex];
+            if (img && img.complete) {
+                ctx.drawImage(img, i * tileWidth - floorOffsetPx, floorY, tileWidth, tileHeight);
+            }
+        }
+        
+        // Разделители — тайлятся без растяжения
+        if (Textures.seamTop && Textures.seamTop.complete) {
+            const img = Textures.seamTop;
+            const drawHeight = 40;
+            const drawWidth = drawHeight * (img.width / img.height);
+            const count = Math.ceil(W / drawWidth) + 1;
+            for (let i = 0; i < count; i++) {
+                ctx.drawImage(img, i * drawWidth, wallY - drawHeight/2, drawWidth, drawHeight);
+            }
+        }
+        
+        if (Textures.seamBottom && Textures.seamBottom.complete) {
+            const img = Textures.seamBottom;
+            const drawHeight = 40;
+            const drawWidth = drawHeight * (img.width / img.height);
+            const count = Math.ceil(W / drawWidth) + 1;
+            for (let i = 0; i < count; i++) {
+                ctx.drawImage(img, i * drawWidth, floorY - drawHeight/2, drawWidth, drawHeight);
+            }
+        }
+        
+        // Анимация
+        if (this.stepVideo && this.stepVideo.readyState >= 2 && !this.stepVideo.paused) {
+            const videoSize = Math.min(W * 0.2, H * 0.2);
+            ctx.drawImage(this.stepVideo, W/2 - videoSize/2, floorY - videoSize/2, videoSize, videoSize);
         }
         
         // Стрелки
