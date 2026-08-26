@@ -6,6 +6,7 @@ body {
     justify-content: center; 
     align-items: center; 
     height: 100vh; 
+    width: 100vw;
     overflow: hidden; 
 }
 canvas { 
@@ -63,8 +64,8 @@ canvas {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
     display: none;
     z-index: 500;
     background: #000;
@@ -93,7 +94,7 @@ canvas {
 
 #arch {
     position: absolute;
-    bottom: -8%;
+    bottom: 5%; /* Поднята выше */
     left: 50%;
     transform: translateX(-50%) scaleX(1.1);
     width: 40%;
@@ -104,7 +105,7 @@ canvas {
 
 #leftDivider {
     position: absolute;
-    left: 30%;
+    left: 28%;
     top: 0;
     height: 100%;
     width: auto;
@@ -114,7 +115,7 @@ canvas {
 
 #rightDivider {
     position: absolute;
-    right: 30%;
+    right: 28%;
     top: 0;
     height: 100%;
     width: auto;
@@ -124,7 +125,7 @@ canvas {
 
 #hero {
     position: absolute;
-    bottom: 15%;
+    bottom: 22%; /* Поднят вместе с аркой */
     left: 50%;
     transform: translateX(-50%) scale(1.2);
     width: 18%;
@@ -141,19 +142,35 @@ canvas {
 
 /* Мобильные */
 @media (max-width: 768px) {
-    #leftStatue { width: 30%; }
-    #rightStatue { width: 30%; }
-    #arch { width: 36%; bottom: -5%; }
-    #hero { width: 20%; bottom: 12%; }
+    #leftStatue { width: 32%; }
+    #rightStatue { width: 32%; }
+    #arch { 
+        width: 36%; 
+        bottom: 8%; /* Поднята */
+        transform: translateX(-50%) scaleX(1.05);
+    }
+    #hero { 
+        width: 22%; 
+        bottom: 24%;
+        transform: translateX(-50%) scale(1.1);
+    }
     #leftDivider { left: 32%; }
     #rightDivider { right: 32%; }
 }
 
 @media (max-width: 480px) {
-    #leftStatue { width: 32%; }
-    #rightStatue { width: 32%; }
-    #arch { width: 32%; bottom: -3%; }
-    #hero { width: 22%; bottom: 10%; }
+    #leftStatue { width: 34%; }
+    #rightStatue { width: 34%; }
+    #arch { 
+        width: 32%; 
+        bottom: 10%; /* Поднята */
+        transform: translateX(-50%) scaleX(1);
+    }
+    #hero { 
+        width: 24%; 
+        bottom: 26%;
+        transform: translateX(-50%) scale(1.05);
+    }
     #leftDivider { left: 34%; }
     #rightDivider { right: 34%; }
 }
