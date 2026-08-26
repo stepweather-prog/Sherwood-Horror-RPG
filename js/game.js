@@ -1,9 +1,7 @@
 // ========== ИГРОВОЙ КОД ==========
-const MAP_W = 10;
-const MAP_H = 10;
+const MAP_W = 12;
+const MAP_H = 12;
 const FOV = Math.PI / 2.5;
-const MOVE_SPEED = 0.08;
-const TURN_SPEED = 0.08;
 
 const map = [];
 for (let y = 0; y < MAP_H; y++) {
@@ -13,34 +11,51 @@ for (let y = 0; y < MAP_H; y++) {
     }
 }
 
-for (let y = 1; y <= 8; y++) {
-    for (let x = 1; x <= 8; x++) {
+// Площадь 10x10 (от 1 до 10)
+for (let y = 1; y <= 10; y++) {
+    for (let x = 1; x <= 10; x++) {
         map[y][x] = 0;
     }
 }
 
+// Секции пола: 4 зоны вокруг дуба
+const sections = {
+    north: { x1: 4, y1: 1, x2: 7, y2: 4 },
+    south: { x1: 4, y1: 7, x2: 7, y2: 10 },
+    west: { x1: 1, y1: 4, x2: 4, y2: 7 },
+    east: { x1: 7, y1: 4, x2: 10, y2: 7 },
+};
+
+// Дуб привязан к центральной секции
+const oak = { x: 5.5, y: 5.5 };
+
+// Иконки на стенах (привязаны к периметру)
 const buildings = [
-    { x: 1, y: 4, icon: 'Квесты', name: 'Квесты' },
-    { x: 4, y: 1, icon: 'Арена', name: 'Арена' },
-    { x: 7, y: 4, icon: 'Рынок', name: 'Рынок' },
-    { x: 4, y: 7, icon: 'Таверна', name: 'Таверна' },
+    { x: 2, y: 0, icon: 'Квесты', name: 'Квесты' },
+    { x: 5, y: 0, icon: 'Арена', name: 'Арена' },
+    { x: 8, y: 0, icon: 'Рынок', name: 'Рынок' },
+    { x: 10, y: 3, icon: 'Таверна', name: 'Таверна' },
+    { x: 10, y: 7, icon: 'Кузница', name: 'Кузница' },
+    { x: 8, y: 10, icon: 'Тренировка', name: 'Тренировка' },
+    { x: 5, y: 10, icon: 'Бестиарий', name: 'Бестиарий' },
+    { x: 2, y: 10, icon: 'Очаг', name: 'Очаг' },
+    { x: 0, y: 7, icon: 'Порталы', name: 'Порталы' },
+    { x: 0, y: 3, icon: 'Чат', name: 'Чат' },
 ];
 
-const oak = { x: 4.5, y: 4.5 };
-
 const player = {
-    x: 4.5,
-    y: 6.5,
+    x: 5.5,
+    y: 8.5,
     angle: -Math.PI / 2,
     moving: false,
     turning: false,
     turnFrom: -Math.PI / 2,
     turnTarget: -Math.PI / 2,
     turnProgress: 0,
-    moveFromX: 4.5,
-    moveFromY: 6.5,
-    targetX: 4.5,
-    targetY: 6.5,
+    moveFromX: 5.5,
+    moveFromY: 8.5,
+    targetX: 5.5,
+    targetY: 8.5,
     moveProgress: 0,
 };
 
@@ -224,6 +239,7 @@ function render() {
         }
     }
     
+    // Дуб привязан к центру
     if (Textures.loaded && Textures.oak) {
         const oakDist = Math.sqrt((oak.x - player.x) ** 2 + (oak.y - player.y) ** 2);
         
@@ -249,24 +265,58 @@ function render() {
         }
     }
     
+    // Иконки на стенах
+    for (const b of buildings) {
+        const dx = b.x + 0.5 - player.x;
+        const dy = b.y + 0.5 - player.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance > 12) continue;
+        
+        const angle = Math.atan2(dy, dx) - player.angle;
+        let na = angle;
+        while (na > Math.PI) na -= 2 * Math.PI;
+        while (na < -Math.PI) na += 2 * Math.PI;
+        
+        if (Math.abs(na) > FOV / 2 + 0.3) continue;
+        
+        const screenX = W / 2 + Math.tan(na) * (W / 2) / Math.tan(FOV / 2);
+        if (screenX < 0 || screenX >= W) continue;
+        
+        if (distance > zBuffer[Math.floor(screenX)] + 0.3) continue;
+        
+        const size = H / distance * 0.6;
+        if (size < 15) continue;
+        
+        const sy = HORIZON - size / 2;
+        const sx = screenX - size / 2;
+        
+        if (Textures.buildings[b.icon]) {
+            ctx.globalAlpha = 1;
+            ctx.drawImage(Textures.buildings[b.icon], sx, sy, size, size);
+        }
+        ctx.globalAlpha = 1;
+    }
+    
+    // Тап-зона для иконки
     const nearBuilding = buildings.find(b => {
         const dist = Math.sqrt((b.x + 0.5 - player.x) ** 2 + (b.y + 0.5 - player.y) ** 2);
-        return dist < 1.5;
+        return dist < 2;
     });
     
     if (nearBuilding && Textures.buildings[nearBuilding.icon]) {
-        const size = H * 0.4;
+        const size = H * 0.5;
         const sx = W / 2 - size / 2;
         const sy = HORIZON - size / 2;
         
-        ctx.globalAlpha = 1;
+        ctx.globalAlpha = 0.7;
         ctx.drawImage(Textures.buildings[nearBuilding.icon], sx, sy, size, size);
         ctx.globalAlpha = 1;
         
         ctx.fillStyle = '#e8d8c0';
         ctx.font = 'bold 20px "Times New Roman", serif';
         ctx.textAlign = 'center';
-        ctx.fillText(nearBuilding.name, W / 2, sy + size + 30);
+        ctx.fillText(nearBuilding.name + ' — тапни', W / 2, sy + size + 30);
     }
     
     const v = ctx.createRadialGradient(W/2, H/2, H/4, W/2, H/2, H * 0.75);
@@ -367,7 +417,7 @@ function turnRight() {
 function interact() {
     const nearBuilding = buildings.find(b => {
         const dist = Math.sqrt((b.x + 0.5 - player.x) ** 2 + (b.y + 0.5 - player.y) ** 2);
-        return dist < 1.5;
+        return dist < 2;
     });
     
     if (nearBuilding) {
@@ -392,7 +442,7 @@ function startGame() {
     }
 }
 
-// Кнопки на экране
+// Кнопки управления
 const joystickHTML = `
 <div id="city-joystick" style="position:fixed;bottom:50px;left:50%;transform:translateX(-50%);width:180px;height:180px;z-index:30;pointer-events:auto;">
     <div class="arrow-btn" id="city-forward" style="position:absolute;top:0;left:62px;width:56px;height:56px;background:rgba(10,8,5,0.9);border:2px solid #6b5a3a;border-radius:50%;color:#c8a050;font-size:24px;display:flex;align-items:center;justify-content:center;pointer-events:auto;-webkit-tap-highlight-color:transparent;text-shadow:0 0 8px #8b6b3a;box-shadow:0 0 10px rgba(139,107,58,0.3);">▲</div>
@@ -405,12 +455,31 @@ document.body.insertAdjacentHTML('beforeend', joystickHTML);
 
 document.getElementById('city-forward').addEventListener('touchstart', (e) => { e.preventDefault(); stepForward(); });
 document.getElementById('city-forward').addEventListener('click', stepForward);
-document.getElementById('city-back').addEventListener('touchstart', (e) => { e.preventDefault(); player.angle += Math.PI; });
-document.getElementById('city-back').addEventListener('click', () => { player.angle += Math.PI; });
 document.getElementById('city-left').addEventListener('touchstart', (e) => { e.preventDefault(); turnLeft(); });
 document.getElementById('city-left').addEventListener('click', turnLeft);
 document.getElementById('city-right').addEventListener('touchstart', (e) => { e.preventDefault(); turnRight(); });
 document.getElementById('city-right').addEventListener('click', turnRight);
+document.getElementById('city-back').addEventListener('touchstart', (e) => { e.preventDefault(); player.angle += Math.PI; });
+document.getElementById('city-back').addEventListener('click', () => { player.angle += Math.PI; });
+
+canvas.addEventListener('click', (e) => {
+    if (currentScreen !== 'game') return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    // Проверяем тап по иконке (центр экрана)
+    const nearBuilding = buildings.find(b => {
+        const dist = Math.sqrt((b.x + 0.5 - player.x) ** 2 + (b.y + 0.5 - player.y) ** 2);
+        return dist < 2;
+    });
+    
+    if (nearBuilding) {
+        interact();
+        return;
+    }
+});
 
 document.addEventListener('keydown', (e) => {
     if (currentScreen !== 'game') return;
