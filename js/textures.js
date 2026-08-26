@@ -96,9 +96,9 @@ const Textures = {
     
     generateMap(textureCount) {
         const tiles = [];
-        for (let y = 0; y < 20; y++) {
+        for (let y = 0; y < 10; y++) {
             tiles[y] = [];
-            for (let x = 0; x < 20; x++) {
+            for (let x = 0; x < 10; x++) {
                 tiles[y][x] = Math.floor(Math.random() * textureCount);
             }
         }
@@ -106,23 +106,23 @@ const Textures = {
     },
     
     getFloorTexture(mapX, mapY) {
-        if (mapY >= 0 && mapY < 20 && mapX >= 0 && mapX < 20) {
-            const idx = this.floorTiles[mapY][mapX];
+        if (mapY >= 0 && mapY < 10 && mapX >= 0 && mapX < 10) {
+            const idx = this.floorTiles[mapY]?.[mapX];
             if (idx !== undefined && this.floor[idx]) {
                 return this.floor[idx];
             }
         }
-        return null;
+        return this.floor[0] || null;
     },
     
     getCeilingTexture(mapX, mapY) {
-        if (mapY >= 0 && mapY < 20 && mapX >= 0 && mapX < 20) {
-            const idx = this.ceilingTiles[mapY][mapX];
+        if (mapY >= 0 && mapY < 10 && mapX >= 0 && mapX < 10) {
+            const idx = this.ceilingTiles[mapY]?.[mapX];
             if (idx !== undefined && this.ceiling[idx]) {
                 return this.ceiling[idx];
             }
         }
-        return null;
+        return this.ceiling[0] || null;
     },
     
     getWallTexture(mapX, mapY) {
