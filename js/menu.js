@@ -29,6 +29,8 @@ const Menu = {
     H: 0,
     iconRect: { x: 0, y: 0, w: 0, h: 0 },
     running: false,
+    leftArrow: null,
+    rightArrow: null,
     
     init() {
         this.canvas = document.getElementById('game');
@@ -37,6 +39,11 @@ const Menu = {
         this.H = window.innerHeight;
         this.canvas.width = this.W;
         this.canvas.height = this.H;
+        
+        this.leftArrow = new Image();
+        this.leftArrow.src = 'assets/icons/left.png';
+        this.rightArrow = new Image();
+        this.rightArrow.src = 'assets/icons/right.png';
         
         window.addEventListener('resize', () => this.resize());
         
@@ -90,11 +97,13 @@ const Menu = {
     },
     
     processTap(x, y) {
-        if (x < 80) {
+        const arrowSize = Math.min(this.W * 0.1, 70);
+        
+        if (x < arrowSize + 20) {
             this.prev();
             return;
         }
-        if (x > this.W - 80) {
+        if (x > this.W - arrowSize - 20) {
             this.next();
             return;
         }
@@ -120,7 +129,7 @@ const Menu = {
             ctx.drawImage(Textures.ceilingCanvas, 0, 0, W, skyHeight);
         }
         
-        const wallHeight = Math.floor(H * 0.4);
+        const wallHeight = Math.floor(H * 0.5);
         const wallY = skyHeight;
         const wallTex = Textures.walls[this.currentIndex % Textures.walls.length];
         if (wallTex) {
@@ -132,12 +141,13 @@ const Menu = {
             ctx.drawImage(Textures.floorCanvas, 0, floorY, W, H - floorY);
         }
         
-        ctx.fillStyle = 'rgba(0,0,0,0.7)';
-        ctx.fillRect(0, wallY - 2, W, 4);
-        ctx.fillRect(0, floorY - 2, W, 4);
+        // Тонкие разделители
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.fillRect(0, wallY, W, 1);
+        ctx.fillRect(0, floorY, W, 1);
         
         const building = this.buildings[this.currentIndex];
-        const iconSize = Math.min(H * 0.3, W * 0.3);
+        const iconSize = Math.min(H * 0.35, W * 0.35);
         const sx = W / 2 - iconSize / 2;
         const sy = wallY + wallHeight / 2 - iconSize / 2;
         
@@ -151,11 +161,12 @@ const Menu = {
             ctx.drawImage(Textures.buildings[building.icon], sx, sy, iconSize, iconSize);
         }
         
+        // Табличка
         if (Textures.buildings['all_stat']) {
             const signW = iconSize * 1.2;
             const signH = iconSize * 0.25;
             const signX = W / 2 - signW / 2;
-            const signY = sy + iconSize + 5;
+            const signY = sy + iconSize + 10;
             
             ctx.drawImage(Textures.buildings['all_stat'], signX, signY, signW, signH);
             ctx.fillStyle = '#e8d8c0';
@@ -165,16 +176,14 @@ const Menu = {
             ctx.fillText(building.name, W / 2, signY + signH / 2);
         }
         
-        const arrowSize = Math.min(W * 0.08, 60);
-        ctx.fillStyle = 'rgba(0,0,0,0.8)';
-        ctx.fillRect(10, H / 2 - arrowSize / 2, arrowSize, arrowSize);
-        ctx.fillRect(W - 10 - arrowSize, H / 2 - arrowSize / 2, arrowSize, arrowSize);
-        ctx.fillStyle = '#c8a050';
-        ctx.font = `${arrowSize * 0.6}px Arial`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('◀', 10 + arrowSize / 2, H / 2);
-        ctx.fillText('▶', W - 10 - arrowSize / 2, H / 2);
+        // Стрелки
+        const arrowSize = Math.min(W * 0.1, 70);
+        if (this.leftArrow) {
+            ctx.drawImage(this.leftArrow, 20, H / 2 - arrowSize / 2, arrowSize, arrowSize);
+        }
+        if (this.rightArrow) {
+            ctx.drawImage(this.rightArrow, W - 20 - arrowSize, H / 2 - arrowSize / 2, arrowSize, arrowSize);
+        }
         
         requestAnimationFrame(() => this.render());
     },
