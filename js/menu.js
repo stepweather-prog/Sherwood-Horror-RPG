@@ -19,7 +19,6 @@ const Menu = {
         { icon: 'Таланты', name: 'Таланты' },
         { icon: 'Ежедневные', name: 'Ежедневные' },
         { icon: 'Кошель', name: 'Кошель' },
-        { icon: 'oak', name: 'Домой' },
     ],
     
     currentIndex: 0,
@@ -28,6 +27,7 @@ const Menu = {
     W: 0,
     H: 0,
     iconRect: { x: 0, y: 0, w: 0, h: 0 },
+    homeRect: { x: 0, y: 0, w: 0, h: 0 },
     running: false,
     leftArrow: null,
     rightArrow: null,
@@ -105,9 +105,7 @@ const Menu = {
     
     interact() {
         const building = this.buildings[this.currentIndex];
-        if (building.icon === 'oak') {
-            if (typeof showHomeScreen === 'function') showHomeScreen();
-        } else if (building.icon === 'Подземка') {
+        if (building.icon === 'Подземка') {
             if (typeof showDungeonScreen === 'function') showDungeonScreen();
         } else {
             if (typeof showSectionScreen === 'function') showSectionScreen(building);
@@ -131,6 +129,14 @@ const Menu = {
     },
     
     processTap(x, y) {
+        // Кнопка домой
+        if (this.homeRect && 
+            x >= this.homeRect.x && x <= this.homeRect.x + this.homeRect.w &&
+            y >= this.homeRect.y && y <= this.homeRect.y + this.homeRect.h) {
+            if (typeof showHomeScreen === 'function') showHomeScreen();
+            return;
+        }
+        
         const arrowSize = Math.min(this.W * 0.1, 70);
         if (x < arrowSize + 20) {
             this.prev();
@@ -153,7 +159,6 @@ const Menu = {
         const W = this.W;
         const H = this.H;
         
-        // Плавная прокрутка стены
         this.wallOffset += (this.targetWallOffset - this.wallOffset) * 0.08;
         
         // Потолок
@@ -163,6 +168,16 @@ const Menu = {
         } else {
             ctx.fillStyle = '#1a1208';
             ctx.fillRect(0, 0, W, skyHeight);
+        }
+        
+        // Кнопка домой
+        if (Textures.oak) {
+            const homeSize = Math.min(W * 0.08, H * 0.08);
+            const homeX = 20;
+            const homeY = 20;
+            
+            ctx.drawImage(Textures.oak, homeX, homeY, homeSize, homeSize);
+            this.homeRect = { x: homeX, y: homeY, w: homeSize, h: homeSize };
         }
         
         // Стена — прокручивается
@@ -185,14 +200,12 @@ const Menu = {
             ctx.fillRect(0, floorY, W, H - floorY);
         }
         
-        // Разделители в исходном размере
+        // Разделители
         if (Textures.seamTop) {
-            const seamH = 20;
-            ctx.drawImage(Textures.seamTop, 0, wallY - seamH/2, W, seamH);
+            ctx.drawImage(Textures.seamTop, 0, wallY - 10, W, 20);
         }
         if (Textures.seamBottom) {
-            const seamH = 20;
-            ctx.drawImage(Textures.seamBottom, 0, floorY - seamH/2, W, seamH);
+            ctx.drawImage(Textures.seamBottom, 0, floorY - 10, W, 20);
         }
         
         // Анимация шага
@@ -201,20 +214,18 @@ const Menu = {
             ctx.drawImage(this.stepVideo, W/2 - videoSize/2, floorY - videoSize/2, videoSize, videoSize);
         }
         
-        // Иконка — чуть выше
+        // Иконка
         const building = this.buildings[this.currentIndex];
         const iconSize = Math.min(H * 0.25, W * 0.25);
         const sx = W / 2 - iconSize / 2;
         const sy = wallY + wallHeight / 2 - iconSize / 2 - 20;
         this.iconRect = { x: sx, y: sy, w: iconSize, h: iconSize };
         
-        if (building.icon === 'oak' && Textures.oak) {
-            ctx.drawImage(Textures.oak, sx, sy, iconSize, iconSize);
-        } else if (Textures.buildings[building.icon]) {
+        if (Textures.buildings[building.icon]) {
             ctx.drawImage(Textures.buildings[building.icon], sx, sy, iconSize, iconSize);
         }
         
-        // Табличка — чуть ниже
+        // Табличка
         if (Textures.buildings['all_stat']) {
             const signW = iconSize * 1.1;
             const signH = iconSize * 0.22;
