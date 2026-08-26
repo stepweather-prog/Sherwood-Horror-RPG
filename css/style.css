@@ -86,20 +86,20 @@ canvas {
     position: absolute;
     left: 0;
     top: 0;
-    width: 28%; /* Шире, перекрывают чёрный фон */
+    width: 28%;
     height: 100%;
     object-fit: cover;
-    z-index: 2;
+    z-index: 4; /* ПОВЕРХ арки */
 }
 
 #rightStatue {
     position: absolute;
     right: 0;
     top: 0;
-    width: 28%; /* Шире, перекрывают чёрный фон */
+    width: 28%;
     height: 100%;
     object-fit: cover;
-    z-index: 2;
+    z-index: 4; /* ПОВЕРХ арки */
 }
 
 #arch {
@@ -107,10 +107,10 @@ canvas {
     bottom: -12%;
     left: 50%;
     transform: translateX(-50%);
-    width: 50%; /* Вернул ширину арки */
+    width: 50%;
     height: auto;
     object-fit: contain;
-    z-index: 3;
+    z-index: 3; /* ПОД статуями */
 }
 
 #hero {
@@ -121,7 +121,7 @@ canvas {
     width: 15%;
     height: auto;
     object-fit: contain;
-    z-index: 4;
+    z-index: 5;
     cursor: pointer;
     transition: transform 0.3s;
 }
