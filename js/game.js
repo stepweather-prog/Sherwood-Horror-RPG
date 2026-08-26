@@ -197,7 +197,7 @@ function render() {
         zBuffer[x] = distance;
     }
     
-        // Швы (полноразмерные, как стены)
+    // Швы (полноразмерные, как стены)
     if (Textures.seamBottom && Textures.seamTop) {
         for (let x = 0; x < W; x++) {
             const cameraX = 2 * x / W - 1;
@@ -222,7 +222,6 @@ function render() {
             
             const texX = Math.floor(wallX * 1024) % 1024;
             
-            // Нижний шов (на всю высоту стены)
             ctx.globalAlpha = 1;
             ctx.drawImage(
                 Textures.seamBottom,
@@ -230,7 +229,6 @@ function render() {
                 x, drawStart, 1, drawEnd - drawStart
             );
             
-            // Верхний шов (на всю высоту стены)
             ctx.drawImage(
                 Textures.seamTop,
                 texX, 0, 1, 1024,
@@ -240,7 +238,7 @@ function render() {
         }
     }
     
-    // Дуб (увеличен, утоплен в пол)
+    // Дуб
     if (Textures.loaded && Textures.oak) {
         const oakDist = Math.sqrt((oak.x - player.x) ** 2 + (oak.y - player.y) ** 2);
         
@@ -296,7 +294,6 @@ function render() {
             ctx.globalAlpha = 1;
             ctx.drawImage(Textures.buildings[b.icon], iconX, iconY, size, size);
             
-            // Табличка ПОД иконкой
             if (Textures.buildings['all_stat']) {
                 const signWidth = size * 1.2;
                 const signHeight = size * 0.25;
