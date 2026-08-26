@@ -61,6 +61,17 @@ const Textures = {
             this.checkLoaded(callback);
         });
         
+        // Слоты
+        this.loadImage('assets/game_details/bag_cell.png', (img) => {
+            this.buildings['bag_cell'] = img;
+            this.checkLoaded(callback);
+        });
+        
+        this.loadImage('assets/game_details/2wallet_cell.png', (img) => {
+            this.buildings['wallet_cell'] = img;
+            this.checkLoaded(callback);
+        });
+        
         // Иконки зданий
         const buildingIcons = {
             'Чат': 'chat_button.png',
@@ -78,9 +89,14 @@ const Textures = {
             'Квесты': 'quest.png',
             'Рейд': 'raid.png',
             'all_stat': 'all_stat.png',
+            'Сумка': 'hero_bag.png',
+            'Настройки': 'settings.png',
+            'Таланты': 'ranger_skills_button.png',
+            'Ежедневные': 'daily_quests.png',
+            'Кошель': 'wallet.png',
         };
         
-        this.totalTextures = 6 + 12 + 5 + 1 + 2 + Object.keys(buildingIcons).length;
+        this.totalTextures = 6 + 12 + 5 + 1 + 2 + 2 + Object.keys(buildingIcons).length;
         
         for (const [name, file] of Object.entries(buildingIcons)) {
             this.loadImage(`assets/icons/${file}`, (img) => {
