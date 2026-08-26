@@ -105,6 +105,9 @@ const Textures = {
         this.floorTiles = this.generateMap(6);
         this.ceilingTiles = this.generateMap(12);
         this.wallTiles = this.generateMap(5);
+        
+        // Луна — в центре карты (клетка 4,4)
+        this.ceilingTiles[4][4] = 11; // Индекс 11 = луна (12-я текстура)
     },
     
     generateMap(textureCount) {
