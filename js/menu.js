@@ -1,4 +1,4 @@
-// ========== МЕНЮ ГОРОДА ==========
+// js/menu.js — полный файл
 const Menu = {
     buildings: [
         { icon: 'Квесты', name: 'Квесты' },
@@ -121,31 +121,41 @@ const Menu = {
         const W = this.W;
         const H = this.H;
         
-        ctx.fillStyle = '#0a0805';
-        ctx.fillRect(0, 0, W, H);
-        
+        // Потолок
         const skyHeight = Math.floor(H * 0.25);
         if (Textures.loaded && Textures.ceilingCanvas) {
             ctx.drawImage(Textures.ceilingCanvas, 0, 0, W, skyHeight);
+        } else {
+            ctx.fillStyle = '#1a1208';
+            ctx.fillRect(0, 0, W, skyHeight);
         }
         
+        // Стена — статичная
         const wallHeight = Math.floor(H * 0.5);
         const wallY = skyHeight;
-        const wallTex = Textures.walls[this.currentIndex % Textures.walls.length];
-        if (wallTex) {
+        if (Textures.loaded && Textures.walls.length > 0) {
+            const wallTex = Textures.walls[0]; // Всегда первая текстура
             ctx.drawImage(wallTex, 0, wallY, W, wallHeight);
+        } else {
+            ctx.fillStyle = '#3a2a1a';
+            ctx.fillRect(0, wallY, W, wallHeight);
         }
         
+        // Пол
         const floorY = wallY + wallHeight;
         if (Textures.loaded && Textures.floorCanvas) {
             ctx.drawImage(Textures.floorCanvas, 0, floorY, W, H - floorY);
+        } else {
+            ctx.fillStyle = '#2a1a0a';
+            ctx.fillRect(0, floorY, W, H - floorY);
         }
         
-        // Тонкие разделители
+        // Тонкие линии
         ctx.fillStyle = 'rgba(0,0,0,0.5)';
         ctx.fillRect(0, wallY, W, 1);
         ctx.fillRect(0, floorY, W, 1);
         
+        // Иконка
         const building = this.buildings[this.currentIndex];
         const iconSize = Math.min(H * 0.35, W * 0.35);
         const sx = W / 2 - iconSize / 2;
