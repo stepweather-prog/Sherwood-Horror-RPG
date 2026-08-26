@@ -11,9 +11,6 @@ playButton.addEventListener('click', () => {
     loadingScreen.style.display = 'none';
     homeScreen.style.display = 'block';
     currentScreen = 'home';
-    
-    const video = document.getElementById('videoBackground');
-    video.play().catch(() => {});
 });
 
 hero.addEventListener('click', () => {
@@ -37,9 +34,6 @@ function showHomeScreen() {
     homeScreen.style.display = 'block';
     gameCanvas.style.display = 'none';
     currentScreen = 'home';
-    
-    const video = document.getElementById('videoBackground');
-    video.play().catch(() => {});
 }
 
 function showSectionScreen(building) {
