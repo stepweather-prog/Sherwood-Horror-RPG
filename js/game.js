@@ -197,7 +197,44 @@ function render() {
         zBuffer[x] = distance;
     }
     
-    // Дуб (только если перед игроком)
+    // Швы
+    if (Textures.seamBottom && Textures.seamTop) {
+        for (let x = 0; x < W; x++) {
+            const cameraX = 2 * x / W - 1;
+            const rayAngle = player.angle + Math.atan(cameraX * Math.tan(FOV / 2));
+            
+            const result = castRay(rayAngle);
+            const { distance, wallType } = result;
+            
+            if (wallType === 0) continue;
+            
+            const lineHeight = Math.floor(H / distance);
+            const drawStart = Math.max(0, HORIZON - lineHeight / 2);
+            const drawEnd = Math.min(H, HORIZON + lineHeight / 2);
+            
+            const seamHeight = Math.floor(lineHeight * 0.08);
+            
+            if (seamHeight > 2) {
+                // Нижний шов
+                ctx.globalAlpha = 1;
+                ctx.drawImage(
+                    Textures.seamBottom,
+                    0, 0, Textures.seamBottom.width, Textures.seamBottom.height,
+                    x, drawEnd - seamHeight, 1, seamHeight
+                );
+                
+                // Верхний шов
+                ctx.drawImage(
+                    Textures.seamTop,
+                    0, 0, Textures.seamTop.width, Textures.seamTop.height,
+                    x, drawStart, 1, seamHeight
+                );
+                ctx.globalAlpha = 1;
+            }
+        }
+    }
+    
+    // Дуб
     if (Textures.loaded && Textures.oak) {
         const oakDist = Math.sqrt((oak.x - player.x) ** 2 + (oak.y - player.y) ** 2);
         
