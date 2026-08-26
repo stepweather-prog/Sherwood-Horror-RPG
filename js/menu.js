@@ -1,4 +1,4 @@
-// js/menu.js
+// js/menu.js — полный файл
 const Menu = {
     buildings: [
         { icon: 'Квесты', name: 'Квесты' },
@@ -31,11 +31,7 @@ const Menu = {
     running: false,
     leftArrow: null,
     rightArrow: null,
-    floorOffset: 0,
-    ceilingOffset: 0,
-    targetFloorOffset: 0,
-    targetCeilingOffset: 0,
-    wallIndex: 0,
+    wallImage: null,
     
     init() {
         this.canvas = document.getElementById('game');
@@ -49,6 +45,8 @@ const Menu = {
         this.leftArrow.src = 'assets/icons/left.png';
         this.rightArrow = new Image();
         this.rightArrow.src = 'assets/icons/right.png';
+        this.wallImage = new Image();
+        this.wallImage.src = 'assets/Sherwood_Square/wall_area_1.png';
         
         window.addEventListener('resize', () => this.resize());
         this.canvas.addEventListener('click', (e) => this.handleClick(e));
@@ -67,14 +65,10 @@ const Menu = {
     
     next() {
         this.currentIndex = (this.currentIndex + 1) % this.buildings.length;
-        this.targetFloorOffset += 100;
-        this.targetCeilingOffset += 50;
     },
     
     prev() {
         this.currentIndex = (this.currentIndex - 1 + this.buildings.length) % this.buildings.length;
-        this.targetFloorOffset -= 100;
-        this.targetCeilingOffset -= 50;
     },
     
     interact() {
@@ -127,29 +121,32 @@ const Menu = {
         const W = this.W;
         const H = this.H;
         
-        // Плавная прокрутка
-        this.floorOffset += (this.targetFloorOffset - this.floorOffset) * 0.08;
-        this.ceilingOffset += (this.targetCeilingOffset - this.ceilingOffset) * 0.08;
-        
-        // Потолок — из файла, прокручивается
+        // Потолок
         const skyHeight = Math.floor(H * 0.25);
         if (Textures.loaded && Textures.ceilingCanvas) {
-            const offsetX = Math.abs(Math.floor(this.ceilingOffset) % Textures.ceilingCanvas.width);
-            ctx.drawImage(Textures.ceilingCanvas, offsetX, 0, W, skyHeight, 0, 0, W, skyHeight);
+            ctx.drawImage(Textures.ceilingCanvas, 0, 0, W, skyHeight);
+        } else {
+            ctx.fillStyle = '#1a1208';
+            ctx.fillRect(0, 0, W, skyHeight);
         }
         
-        // Стена — статичная из файла
+        // Стена — один файл
         const wallHeight = Math.floor(H * 0.5);
         const wallY = skyHeight;
-        if (Textures.walls.length > 0) {
-            ctx.drawImage(Textures.walls[0], 0, wallY, W, wallHeight);
+        if (this.wallImage && this.wallImage.complete && this.wallImage.naturalWidth > 0) {
+            ctx.drawImage(this.wallImage, 0, wallY, W, wallHeight);
+        } else {
+            ctx.fillStyle = '#3a2a1a';
+            ctx.fillRect(0, wallY, W, wallHeight);
         }
         
-        // Пол — из файла, прокручивается
+        // Пол
         const floorY = wallY + wallHeight;
         if (Textures.loaded && Textures.floorCanvas) {
-            const offsetX = Math.abs(Math.floor(this.floorOffset) % Textures.floorCanvas.width);
-            ctx.drawImage(Textures.floorCanvas, offsetX, 0, W, H - floorY, 0, floorY, W, H - floorY);
+            ctx.drawImage(Textures.floorCanvas, 0, floorY, W, H - floorY);
+        } else {
+            ctx.fillStyle = '#2a1a0a';
+            ctx.fillRect(0, floorY, W, H - floorY);
         }
         
         // Иконка
@@ -179,8 +176,12 @@ const Menu = {
         
         // Стрелки
         const arrowSize = Math.min(W * 0.1, 70);
-        if (this.leftArrow) ctx.drawImage(this.leftArrow, 20, H/2 - arrowSize/2, arrowSize, arrowSize);
-        if (this.rightArrow) ctx.drawImage(this.rightArrow, W - 20 - arrowSize, H/2 - arrowSize/2, arrowSize, arrowSize);
+        if (this.leftArrow && this.leftArrow.complete) {
+            ctx.drawImage(this.leftArrow, 20, H/2 - arrowSize/2, arrowSize, arrowSize);
+        }
+        if (this.rightArrow && this.rightArrow.complete) {
+            ctx.drawImage(this.rightArrow, W - 20 - arrowSize, H/2 - arrowSize/2, arrowSize, arrowSize);
+        }
         
         requestAnimationFrame(() => this.render());
     },
