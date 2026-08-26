@@ -403,9 +403,44 @@ function interact() {
         if (building.icon === 'Подземка') {
             showDungeonScreen();
         } else {
-            alert('Вход в: ' + building.name);
+            showSectionScreen(building);
         }
     }
+}
+
+// ========== ЭКРАНЫ РАЗДЕЛОВ ==========
+function showSectionScreen(building) {
+    const backgrounds = {
+        'Таверна': 'assets/backgrounds/section_tavern.png',
+        'Порталы': 'assets/backgrounds/portal.png',
+        'Чат': 'assets/backgrounds/chat_background.png',
+        'Рейд': 'assets/backgrounds/background_raid.png',
+        'Арена': 'assets/backgrounds/pvp_arena.png',
+        'Квесты': 'assets/backgrounds/quest.png',
+        'Ежедневные': 'assets/backgrounds/tasks_day.png',
+    };
+    
+    const bg = backgrounds[building.icon] || 'assets/backgrounds/sherwood_thicket.png';
+    
+    const screenHTML = `
+    <div id="section-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:100;background:url('${bg}') center/cover no-repeat;display:flex;flex-direction:column;">
+        <div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(0,0,0,0.5);">
+            <button onclick="closeSectionScreen()" style="background:transparent;border:none;cursor:pointer;padding:0;width:50px;height:50px;">
+                <img src="assets/all_buttons/back.png" style="width:100%;height:100%;object-fit:contain;">
+            </button>
+            <span style="color:#e0c080;font-size:1.2em;text-shadow:0 0 10px #000;">${building.name}</span>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:20px;">
+            <!-- Контент раздела -->
+        </div>
+    </div>`;
+    
+    document.body.insertAdjacentHTML('beforeend', screenHTML);
+}
+
+function closeSectionScreen() {
+    const screen = document.getElementById('section-screen');
+    if (screen) screen.remove();
 }
 
 // ========== ЭКРАН ПОДЗЕМОК ==========
