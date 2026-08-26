@@ -76,9 +76,10 @@ canvas {
     left: 50%;
     transform: translate(-50%, -50%);
     width: 40%;
-    height: 80%; /* Ужат по вертикали */
-    object-fit: cover;
+    height: 100%; /* Полная высота */
+    object-fit: contain; /* Не обрезает, вписывает полностью */
     z-index: 1;
+    background: #000;
 }
 
 #leftStatue {
@@ -103,7 +104,7 @@ canvas {
 
 #arch {
     position: absolute;
-    bottom: -5%; /* Опущена ниже */
+    bottom: -5%;
     left: 50%;
     transform: translateX(-50%);
     width: 40%;
