@@ -197,7 +197,7 @@ function render() {
         zBuffer[x] = distance;
     }
     
-    // Швы
+    // Швы (толще в 3 раза)
     if (Textures.seamBottom && Textures.seamTop) {
         for (let x = 0; x < W; x++) {
             const cameraX = 2 * x / W - 1;
@@ -212,7 +212,7 @@ function render() {
             const drawStart = Math.max(0, HORIZON - lineHeight / 2);
             const drawEnd = Math.min(H, HORIZON + lineHeight / 2);
             
-            const seamHeight = Math.floor(lineHeight * 0.08);
+            const seamHeight = Math.floor(lineHeight * 0.24);
             
             if (seamHeight > 2) {
                 // Нижний шов
@@ -283,24 +283,24 @@ function render() {
         const size = H / distance * 0.6;
         if (size < 15) continue;
         
-        const sy = HORIZON - size / 2;
-        const sx = screenX - size / 2;
+        const iconY = HORIZON - size / 2;
+        const iconX = screenX - size / 2;
         
         if (Textures.buildings[b.icon]) {
             ctx.globalAlpha = 1;
-            ctx.drawImage(Textures.buildings[b.icon], sx, sy, size, size);
+            ctx.drawImage(Textures.buildings[b.icon], iconX, iconY, size, size);
             
-            // Табличка с названием
+            // Табличка ПОД иконкой
             if (Textures.buildings['all_stat']) {
                 const signWidth = size * 1.2;
-                const signHeight = size * 0.3;
+                const signHeight = size * 0.25;
                 const signX = screenX - signWidth / 2;
-                const signY = sy - signHeight;
+                const signY = iconY + size; // Под иконкой
                 
                 ctx.drawImage(Textures.buildings['all_stat'], signX, signY, signWidth, signHeight);
                 
                 ctx.fillStyle = '#e8d8c0';
-                ctx.font = `bold ${Math.floor(size * 0.12)}px "Times New Roman", serif`;
+                ctx.font = `bold ${Math.floor(size * 0.1)}px "Times New Roman", serif`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText(b.name, screenX, signY + signHeight / 2);
