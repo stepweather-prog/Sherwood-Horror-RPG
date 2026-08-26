@@ -106,13 +106,12 @@ canvas {
     position: absolute;
     bottom: -12%;
     left: 50%;
-    transform: translateX(-50%);
-    width: 44%; /* Растянута между статуями (28% + 28% = 56%, остаётся 44%) */
+    transform: translateX(-50%) scaleX(1.2) scaleY(1); 
+    width: 50%;
     height: auto;
-    object-fit: fill; /* Растягиваем */
+    object-fit: contain;
     z-index: 3;
 }
-
 #hero {
     position: absolute;
     bottom: 18%;
