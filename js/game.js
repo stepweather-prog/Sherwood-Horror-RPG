@@ -197,14 +197,14 @@ function render() {
         zBuffer[x] = distance;
     }
     
-    // Швы (растянуты по вертикали)
+        // Швы (полноразмерные, как стены)
     if (Textures.seamBottom && Textures.seamTop) {
         for (let x = 0; x < W; x++) {
             const cameraX = 2 * x / W - 1;
             const rayAngle = player.angle + Math.atan(cameraX * Math.tan(FOV / 2));
             
             const result = castRay(rayAngle);
-            const { distance, wallType } = result;
+            const { distance, wallType, side } = result;
             
             if (wallType === 0) continue;
             
@@ -212,26 +212,31 @@ function render() {
             const drawStart = Math.max(0, HORIZON - lineHeight / 2);
             const drawEnd = Math.min(H, HORIZON + lineHeight / 2);
             
-            // Высота шва - 15% от высоты стены
-            const seamHeight = Math.floor(lineHeight * 0.15);
-            
-            if (seamHeight > 2) {
-                // Нижний шов
-                ctx.globalAlpha = 1;
-                ctx.drawImage(
-                    Textures.seamBottom,
-                    0, 0, Textures.seamBottom.width, Textures.seamBottom.height,
-                    x, drawEnd - seamHeight, 1, seamHeight
-                );
-                
-                // Верхний шов
-                ctx.drawImage(
-                    Textures.seamTop,
-                    0, 0, Textures.seamTop.width, Textures.seamTop.height,
-                    x, drawStart, 1, seamHeight
-                );
-                ctx.globalAlpha = 1;
+            let wallX;
+            if (side === 0) {
+                wallX = player.y + distance * Math.sin(rayAngle);
+            } else {
+                wallX = player.x + distance * Math.cos(rayAngle);
             }
+            wallX -= Math.floor(wallX);
+            
+            const texX = Math.floor(wallX * 1024) % 1024;
+            
+            // Нижний шов (на всю высоту стены)
+            ctx.globalAlpha = 1;
+            ctx.drawImage(
+                Textures.seamBottom,
+                texX, 0, 1, 1024,
+                x, drawStart, 1, drawEnd - drawStart
+            );
+            
+            // Верхний шов (на всю высоту стены)
+            ctx.drawImage(
+                Textures.seamTop,
+                texX, 0, 1, 1024,
+                x, drawStart, 1, drawEnd - drawStart
+            );
+            ctx.globalAlpha = 1;
         }
     }
     
