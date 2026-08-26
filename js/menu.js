@@ -1,4 +1,3 @@
-// js/menu.js
 // ========== МЕНЮ ГОРОДА ==========
 const Menu = {
     buildings: [
@@ -67,9 +66,9 @@ const Menu = {
         if (building.icon === 'oak') {
             if (typeof showHomeScreen === 'function') showHomeScreen();
         } else if (building.icon === 'Подземка') {
-            showDungeonScreen();
+            if (typeof showDungeonScreen === 'function') showDungeonScreen();
         } else {
-            showSectionScreen(building);
+            if (typeof showSectionScreen === 'function') showSectionScreen(building);
         }
     },
     
