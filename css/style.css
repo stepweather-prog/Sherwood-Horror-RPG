@@ -39,8 +39,8 @@ canvas {
     top: 55%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 200px;
-    height: 200px;
+    width: min(200px, 40vw);
+    height: min(200px, 40vw);
     cursor: pointer;
     transition: transform 0.3s;
     background: none;
@@ -89,7 +89,7 @@ canvas {
     width: 28%;
     height: 100%;
     object-fit: cover;
-    z-index: 4; /* ПОВЕРХ арки */
+    z-index: 4;
 }
 
 #rightStatue {
@@ -99,19 +99,20 @@ canvas {
     width: 28%;
     height: 100%;
     object-fit: cover;
-    z-index: 4; /* ПОВЕРХ арки */
+    z-index: 4;
 }
 
 #arch {
     position: absolute;
     bottom: -12%;
     left: 50%;
-    transform: translateX(-50%) scaleX(1.2) scaleY(1); 
+    transform: translateX(-50%) scaleX(1.2);
     width: 50%;
     height: auto;
     object-fit: contain;
     z-index: 3;
 }
+
 #hero {
     position: absolute;
     bottom: 18%;
@@ -127,4 +128,59 @@ canvas {
 
 #hero:hover {
     transform: translateX(-50%) scale(1.4);
+}
+
+/* Мобильные */
+@media (max-width: 768px) {
+    #videoBackground {
+        width: 40%;
+        height: 80%;
+    }
+    
+    #leftStatue {
+        width: 30%;
+    }
+    
+    #rightStatue {
+        width: 30%;
+    }
+    
+    #arch {
+        width: 40%;
+        bottom: -5%;
+        transform: translateX(-50%) scaleX(1.1);
+    }
+    
+    #hero {
+        width: 20%;
+        bottom: 15%;
+        transform: translateX(-50%) scale(1.2);
+    }
+}
+
+@media (max-width: 480px) {
+    #videoBackground {
+        width: 35%;
+        height: 70%;
+    }
+    
+    #leftStatue {
+        width: 32%;
+    }
+    
+    #rightStatue {
+        width: 32%;
+    }
+    
+    #arch {
+        width: 36%;
+        bottom: -3%;
+        transform: translateX(-50%) scaleX(1.05);
+    }
+    
+    #hero {
+        width: 22%;
+        bottom: 12%;
+        transform: translateX(-50%) scale(1.15);
+    }
 }
