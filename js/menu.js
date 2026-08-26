@@ -36,8 +36,9 @@ const Menu = {
     floorImage: null,
     stepVideo: null,
     stepTimer: null,
-    wallOffset: 0,
-    targetWallOffset: 0,
+    rotationAngle: 0,
+    targetRotation: 0,
+    isRotating: false,
     
     init() {
         this.canvas = document.getElementById('game');
@@ -80,14 +81,18 @@ const Menu = {
     },
     
     next() {
+        if (this.isRotating) return;
         this.currentIndex = (this.currentIndex + 1) % this.buildings.length;
-        this.targetWallOffset += 100;
+        this.targetRotation -= Math.PI / 2;
+        this.isRotating = true;
         this.playStepAnimation();
     },
     
     prev() {
+        if (this.isRotating) return;
         this.currentIndex = (this.currentIndex - 1 + this.buildings.length) % this.buildings.length;
-        this.targetWallOffset -= 100;
+        this.targetRotation += Math.PI / 2;
+        this.isRotating = true;
         this.playStepAnimation();
     },
     
@@ -129,7 +134,6 @@ const Menu = {
     },
     
     processTap(x, y) {
-        // Кнопка домой
         if (this.homeRect && 
             x >= this.homeRect.x && x <= this.homeRect.x + this.homeRect.w &&
             y >= this.homeRect.y && y <= this.homeRect.y + this.homeRect.h) {
@@ -159,11 +163,20 @@ const Menu = {
         const W = this.W;
         const H = this.H;
         
-        this.wallOffset += (this.targetWallOffset - this.wallOffset) * 0.08;
+        // Плавный поворот
+        if (this.isRotating) {
+            const diff = this.targetRotation - this.rotationAngle;
+            if (Math.abs(diff) < 0.01) {
+                this.rotationAngle = this.targetRotation;
+                this.isRotating = false;
+            } else {
+                this.rotationAngle += diff * 0.1;
+            }
+        }
         
         // Потолок
         const skyHeight = Math.floor(H * 0.25);
-        if (this.ceilingImage && this.ceilingImage.complete && this.ceilingImage.naturalWidth > 0) {
+        if (this.ceilingImage && this.ceilingImage.complete) {
             ctx.drawImage(this.ceilingImage, 0, 0, W, skyHeight);
         } else {
             ctx.fillStyle = '#1a1208';
@@ -173,48 +186,26 @@ const Menu = {
         // Кнопка домой
         if (Textures.oak) {
             const homeSize = Math.min(W * 0.08, H * 0.08);
-            const homeX = 20;
-            const homeY = 20;
-            
-            ctx.drawImage(Textures.oak, homeX, homeY, homeSize, homeSize);
-            this.homeRect = { x: homeX, y: homeY, w: homeSize, h: homeSize };
+            ctx.drawImage(Textures.oak, 20, 20, homeSize, homeSize);
+            this.homeRect = { x: 20, y: 20, w: homeSize, h: homeSize };
         }
         
-        // Стена — прокручивается
+        // Стена с эффектом поворота
         const wallHeight = Math.floor(H * 0.5);
         const wallY = skyHeight;
-        if (this.wallImage && this.wallImage.complete && this.wallImage.naturalWidth > 0) {
-            const offsetX = Math.abs(Math.floor(this.wallOffset) % this.wallImage.width);
-            ctx.drawImage(this.wallImage, offsetX, 0, W, wallHeight, 0, wallY, W, wallHeight);
+        ctx.save();
+        ctx.translate(W/2, wallY + wallHeight/2);
+        ctx.rotate(this.rotationAngle);
+        ctx.translate(-W/2, -(wallY + wallHeight/2));
+        
+        if (this.wallImage && this.wallImage.complete) {
+            ctx.drawImage(this.wallImage, 0, wallY, W, wallHeight);
         } else {
             ctx.fillStyle = '#3a2a1a';
             ctx.fillRect(0, wallY, W, wallHeight);
         }
         
-        // Пол
-        const floorY = wallY + wallHeight;
-        if (this.floorImage && this.floorImage.complete && this.floorImage.naturalWidth > 0) {
-            ctx.drawImage(this.floorImage, 0, floorY, W, H - floorY);
-        } else {
-            ctx.fillStyle = '#2a1a0a';
-            ctx.fillRect(0, floorY, W, H - floorY);
-        }
-        
-        // Разделители
-        if (Textures.seamTop) {
-            ctx.drawImage(Textures.seamTop, 0, wallY - 10, W, 20);
-        }
-        if (Textures.seamBottom) {
-            ctx.drawImage(Textures.seamBottom, 0, floorY - 10, W, 20);
-        }
-        
-        // Анимация шага
-        if (this.stepVideo && this.stepVideo.readyState >= 2 && !this.stepVideo.paused) {
-            const videoSize = Math.min(W * 0.2, H * 0.2);
-            ctx.drawImage(this.stepVideo, W/2 - videoSize/2, floorY - videoSize/2, videoSize, videoSize);
-        }
-        
-        // Иконка
+        // Иконка на стене
         const building = this.buildings[this.currentIndex];
         const iconSize = Math.min(H * 0.25, W * 0.25);
         const sx = W / 2 - iconSize / 2;
@@ -223,6 +214,32 @@ const Menu = {
         
         if (Textures.buildings[building.icon]) {
             ctx.drawImage(Textures.buildings[building.icon], sx, sy, iconSize, iconSize);
+        }
+        
+        ctx.restore();
+        
+        // Пол
+        const floorY = wallY + wallHeight;
+        if (this.floorImage && this.floorImage.complete) {
+            const tileHeight = H - floorY;
+            const tileWidth = tileHeight;
+            const count = Math.ceil(W / tileWidth) + 1;
+            for (let i = -1; i < count; i++) {
+                ctx.drawImage(this.floorImage, i * tileWidth, floorY, tileWidth, tileHeight);
+            }
+        } else {
+            ctx.fillStyle = '#2a1a0a';
+            ctx.fillRect(0, floorY, W, H - floorY);
+        }
+        
+        // Разделители
+        if (Textures.seamTop) ctx.drawImage(Textures.seamTop, 0, wallY - 10, W, 20);
+        if (Textures.seamBottom) ctx.drawImage(Textures.seamBottom, 0, floorY - 10, W, 20);
+        
+        // Анимация шага
+        if (this.stepVideo && this.stepVideo.readyState >= 2 && !this.stepVideo.paused) {
+            const videoSize = Math.min(W * 0.2, H * 0.2);
+            ctx.drawImage(this.stepVideo, W/2 - videoSize/2, floorY - videoSize/2, videoSize, videoSize);
         }
         
         // Табличка
@@ -252,8 +269,6 @@ const Menu = {
     destroy() {
         this.running = false;
         clearTimeout(this.stepTimer);
-        if (this.stepVideo) {
-            this.stepVideo.pause();
-        }
+        if (this.stepVideo) this.stepVideo.pause();
     }
 };
