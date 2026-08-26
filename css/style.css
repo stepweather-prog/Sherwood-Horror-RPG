@@ -1,13 +1,18 @@
 /* css/style.css */
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { 
-    background: #000; 
-    display: flex; 
-    justify-content: center; 
-    align-items: center; 
-    height: 100vh; 
-    width: 100vw;
-    overflow: hidden; 
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #000;
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+}
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 canvas { 
     display: none;
@@ -33,12 +38,11 @@ canvas {
     width: 100%;
     height: 100%;
     object-fit: fill;
-    object-position: center;
 }
 
 #playButton {
     position: absolute;
-    top: 55%;
+    top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     width: min(200px, 40vw);
@@ -50,8 +54,8 @@ canvas {
     z-index: 1001;
 }
 
-#playButton:hover {
-    transform: translate(-50%, -50%) scale(1.1);
+#playButton:active {
+    transform: translate(-50%, -50%) scale(0.9);
 }
 
 #playButton img {
@@ -72,13 +76,15 @@ canvas {
     overflow: hidden;
 }
 
+/* Статуи — по краям, не разбегаются */
 #leftStatue {
     position: absolute;
     left: 0;
     top: 0;
-    width: 28%;
+    width: 30%;
     height: 100%;
     object-fit: cover;
+    object-position: center;
     z-index: 4;
 }
 
@@ -86,28 +92,32 @@ canvas {
     position: absolute;
     right: 0;
     top: 0;
-    width: 28%;
+    width: 30%;
     height: 100%;
     object-fit: cover;
+    object-position: center;
     z-index: 4;
 }
 
+/* Арка — зафиксирована по высоте экрана */
 #arch {
     position: absolute;
-    bottom: 5%; /* Поднята выше */
+    top: 50%;
     left: 50%;
-    transform: translateX(-50%) scaleX(1.1);
-    width: 40%;
-    height: auto;
+    transform: translate(-50%, -50%);
+    width: auto;
+    height: 90vh; /* Всегда 90% высоты экрана */
     object-fit: contain;
     z-index: 3;
 }
 
+/* Разделители — рядом с аркой, не вплотную */
 #leftDivider {
     position: absolute;
-    left: 28%;
-    top: 0;
-    height: 100%;
+    left: 31%; /* Чуть отодвинут от арки */
+    top: 50%;
+    transform: translateY(-50%);
+    height: 80vh;
     width: auto;
     object-fit: contain;
     z-index: 6;
@@ -115,9 +125,10 @@ canvas {
 
 #rightDivider {
     position: absolute;
-    right: 28%;
-    top: 0;
-    height: 100%;
+    right: 31%;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 80vh;
     width: auto;
     object-fit: contain;
     z-index: 6;
@@ -125,52 +136,43 @@ canvas {
 
 #hero {
     position: absolute;
-    bottom: 22%; /* Поднят вместе с аркой */
+    bottom: 10%;
     left: 50%;
-    transform: translateX(-50%) scale(1.2);
+    transform: translateX(-50%);
     width: 18%;
     height: auto;
     object-fit: contain;
     z-index: 5;
     cursor: pointer;
-    transition: transform 0.3s;
+    transition: transform 0.2s;
 }
 
-#hero:hover {
-    transform: translateX(-50%) scale(1.3);
+#hero:active {
+    transform: translateX(-50%) scale(0.95);
 }
 
-/* Мобильные */
+/* Адаптивность без разбегания */
 @media (max-width: 768px) {
     #leftStatue { width: 32%; }
     #rightStatue { width: 32%; }
-    #arch { 
-        width: 36%; 
-        bottom: 8%; /* Поднята */
-        transform: translateX(-50%) scaleX(1.05);
-    }
-    #hero { 
-        width: 22%; 
-        bottom: 24%;
-        transform: translateX(-50%) scale(1.1);
-    }
-    #leftDivider { left: 32%; }
-    #rightDivider { right: 32%; }
+    #arch { height: 80vh; }
+    #leftDivider { left: 33%; height: 70vh; }
+    #rightDivider { right: 33%; height: 70vh; }
+    #hero { width: 22%; bottom: 12%; }
 }
 
 @media (max-width: 480px) {
     #leftStatue { width: 34%; }
     #rightStatue { width: 34%; }
-    #arch { 
-        width: 32%; 
-        bottom: 10%; /* Поднята */
-        transform: translateX(-50%) scaleX(1);
-    }
-    #hero { 
-        width: 24%; 
-        bottom: 26%;
-        transform: translateX(-50%) scale(1.05);
-    }
-    #leftDivider { left: 34%; }
-    #rightDivider { right: 34%; }
+    #arch { height: 75vh; }
+    #leftDivider { left: 35%; height: 65vh; }
+    #rightDivider { right: 35%; height: 65vh; }
+    #hero { width: 24%; bottom: 14%; }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+    #arch { height: 85vh; }
+    #leftDivider { height: 75vh; }
+    #rightDivider { height: 75vh; }
+    #hero { width: 15%; bottom: 8%; }
 }
