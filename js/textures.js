@@ -65,6 +65,7 @@ const Textures = {
             'Трофейный зал': 'hero_bag.png',
             'Квесты': 'quest.png',
             'Рейд': 'raid.png',
+            'all_stat': 'all_stat.png',
         };
         
         this.totalTextures = 6 + 12 + 5 + 1 + Object.keys(buildingIcons).length;
@@ -125,7 +126,6 @@ const Textures = {
     },
     
     getWallTexture(mapX, mapY) {
-        // Всегда первая текстура для всех стен (бесшовно)
         if (this.walls.length > 0) {
             return this.walls[0];
         }
