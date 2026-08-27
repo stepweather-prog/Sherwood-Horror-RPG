@@ -1,4 +1,4 @@
-// js/menu.js — полный, исправленный
+// js/menu.js — ПОЛНЫЙ, с исправлениями
 const Menu = {
     buildings: [
         { icon: 'Квесты', name: 'Квесты' },
@@ -30,8 +30,6 @@ const Menu = {
     
     init() {
         this.screen = document.getElementById('menuScreen');
-        this.iconContainer = document.getElementById('menu-icon-container');
-        
         this.screen.style.display = 'block';
         this.screen.innerHTML = '';
         
@@ -55,16 +53,18 @@ const Menu = {
         }
         this.screen.appendChild(floor);
         
-        // Разделители — как на главной, исходный размер
-        const seamTop = document.createElement('img');
-        seamTop.src = 'assets/game_details/seam_top.png';
-        seamTop.style.cssText = 'position:absolute;top:25%;left:50%;transform:translate(-50%,-50%);width:auto;height:60px;z-index:5;';
-        this.screen.appendChild(seamTop);
-        
-        const seamBottom = document.createElement('img');
-        seamBottom.src = 'assets/game_details/seam_bottom.png';
-        seamBottom.style.cssText = 'position:absolute;top:75%;left:50%;transform:translate(-50%,-50%);width:auto;height:60px;z-index:5;';
-        this.screen.appendChild(seamBottom);
+        // Разделители — ПО 3 ШТУКИ, исходный размер
+        for (let i = 0; i < 3; i++) {
+            const seamTop = document.createElement('img');
+            seamTop.src = 'assets/game_details/seam_top.png';
+            seamTop.style.cssText = `position:absolute;top:25%;left:${i * 33.33}%;transform:translate(-50%,-50%);z-index:5;`;
+            this.screen.appendChild(seamTop);
+            
+            const seamBottom = document.createElement('img');
+            seamBottom.src = 'assets/game_details/seam_bottom.png';
+            seamBottom.style.cssText = `position:absolute;top:75%;left:${i * 33.33}%;transform:translate(-50%,-50%);z-index:5;`;
+            this.screen.appendChild(seamBottom);
+        }
         
         // Иконки
         this.iconContainer = document.createElement('div');
@@ -72,13 +72,13 @@ const Menu = {
         this.screen.appendChild(this.iconContainer);
         this.buildCarousel();
         
-        // Анимация внизу — маленькая
+        // Анимация — в 2 раза крупнее чем было, но не перекрывает
         this.stepVideo = document.createElement('video');
         this.stepVideo.src = 'assets/animation/step_up.webm';
         this.stepVideo.loop = false;
         this.stepVideo.muted = true;
         this.stepVideo.playsInline = true;
-        this.stepVideo.style.cssText = 'position:absolute;bottom:2%;left:50%;transform:translateX(-50%);width:15vw;max-width:80px;height:auto;z-index:4;pointer-events:none;';
+        this.stepVideo.style.cssText = 'position:absolute;bottom:1%;left:50%;transform:translateX(-50%);width:20vw;max-width:120px;height:auto;z-index:4;pointer-events:none;';
         this.screen.appendChild(this.stepVideo);
         
         // Кнопка домой
@@ -119,7 +119,6 @@ const Menu = {
             
             section.appendChild(img);
             section.appendChild(label);
-            
             section.onclick = () => this.interact(building);
             
             this.iconContainer.appendChild(section);
