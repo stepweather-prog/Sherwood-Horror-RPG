@@ -1,4 +1,4 @@
-// js/menu.js — ГОРИЗОНТАЛЬНАЯ КАРУСЕЛЬ КАК В ПОДЗЕМКЕ
+// js/menu.js — ПОЛНЫЙ, РАБОЧИЙ, СЛОИ ПРАВИЛЬНЫЕ
 const Menu = {
     buildings: [
         { icon: 'Квесты', name: 'Квесты' },
@@ -32,20 +32,22 @@ const Menu = {
         this.screen = document.getElementById('menuScreen');
         this.screen.style.display = 'block';
         this.screen.innerHTML = '';
+        this.screen.style.position = 'relative';
+        this.screen.style.overflow = 'hidden';
         
-        // Потолок
+        // СЛОЙ 1: Потолок
         const ceiling = document.createElement('div');
-        ceiling.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:25%;background:url("assets/Sherwood_Square/area_ceiling_moon.png") center/cover no-repeat;';
+        ceiling.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:25%;background:url("assets/Sherwood_Square/area_ceiling_moon.png") center/cover no-repeat;z-index:1;';
         this.screen.appendChild(ceiling);
         
-        // Стена
+        // СЛОЙ 2: Стена
         const wall = document.createElement('div');
-        wall.style.cssText = 'position:absolute;top:25%;left:0;width:100%;height:50%;background:url("assets/Sherwood_Square/wall_area_1.png") center/cover no-repeat;';
+        wall.style.cssText = 'position:absolute;top:25%;left:0;width:100%;height:50%;background:url("assets/Sherwood_Square/wall_area_1.png") center/cover no-repeat;z-index:2;';
         this.screen.appendChild(wall);
         
-        // Пол
+        // СЛОЙ 3: Пол
         const floor = document.createElement('div');
-        floor.style.cssText = 'position:absolute;bottom:0;left:0;width:100%;height:25%;display:flex;';
+        floor.style.cssText = 'position:absolute;bottom:0;left:0;width:100%;height:25%;display:flex;z-index:1;';
         for (let i = 1; i <= 3; i++) {
             const tile = document.createElement('div');
             tile.style.cssText = `width:33.33%;height:100%;background:url('assets/Sherwood_Square/floor${i}.png') center/cover no-repeat;`;
@@ -53,65 +55,67 @@ const Menu = {
         }
         this.screen.appendChild(floor);
         
-        // Разделители — по 3
-        for (let i = 0; i < 3; i++) {
-            const seamTop = document.createElement('img');
-            seamTop.src = 'assets/game_details/seam_top.png';
-            seamTop.style.cssText = `position:absolute;top:25%;left:${i * 33.33}%;transform:translate(-50%,-50%);z-index:5;`;
-            this.screen.appendChild(seamTop);
-            
-            const seamBottom = document.createElement('img');
-            seamBottom.src = 'assets/game_details/seam_bottom.png';
-            seamBottom.style.cssText = `position:absolute;top:75%;left:${i * 33.33}%;transform:translate(-50%,-50%);z-index:5;`;
-            this.screen.appendChild(seamBottom);
-        }
-        
-        // Иконки — карусель
+        // СЛОЙ 4: Иконки — карусель ПОВЕРХ стены
         this.iconContainer = document.createElement('div');
         this.iconContainer.style.cssText = 'position:absolute;top:25%;left:0;width:100%;height:50%;white-space:nowrap;overflow:hidden;z-index:3;';
         this.screen.appendChild(this.iconContainer);
         this.buildCarousel();
         
-        // Анимация
+        // СЛОЙ 5: Разделители ПОВЕРХ иконок
+        for (let i = 0; i < 3; i++) {
+            const seamTop = document.createElement('img');
+            seamTop.src = 'assets/game_details/seam_top.png';
+            seamTop.style.cssText = `position:absolute;top:25%;left:${i * 33.33}%;transform:translate(-50%,-50%);z-index:4;`;
+            this.screen.appendChild(seamTop);
+            
+            const seamBottom = document.createElement('img');
+            seamBottom.src = 'assets/game_details/seam_bottom.png';
+            seamBottom.style.cssText = `position:absolute;top:75%;left:${i * 33.33}%;transform:translate(-50%,-50%);z-index:4;`;
+            this.screen.appendChild(seamBottom);
+        }
+        
+        // СЛОЙ 6: Анимация
         this.stepVideo = document.createElement('video');
         this.stepVideo.src = 'assets/animation/step_up.webm';
         this.stepVideo.loop = false;
         this.stepVideo.muted = true;
         this.stepVideo.playsInline = true;
-        this.stepVideo.style.cssText = 'position:absolute;bottom:1%;left:50%;transform:translateX(-50%);width:20vw;max-width:120px;z-index:4;pointer-events:none;';
+        this.stepVideo.style.cssText = 'position:absolute;bottom:1%;left:50%;transform:translateX(-50%);width:20vw;max-width:120px;z-index:5;pointer-events:none;';
         this.screen.appendChild(this.stepVideo);
         
-        // Кнопка домой
+        // СЛОЙ 7: Кнопка домой
         const homeBtn = document.createElement('img');
         homeBtn.src = 'assets/Sherwood_Square/oak_area.png';
-        homeBtn.style.cssText = 'position:absolute;top:2%;left:2%;width:8vw;max-width:50px;cursor:pointer;z-index:10;';
+        homeBtn.style.cssText = 'position:absolute;top:2%;left:2%;width:8vw;max-width:50px;cursor:pointer;z-index:6;';
         homeBtn.onclick = () => { if (typeof showHomeScreen === 'function') showHomeScreen(); };
         this.screen.appendChild(homeBtn);
         
-        // Стрелки
+        // СЛОЙ 8: Стрелки
         const leftArrow = document.createElement('img');
         leftArrow.src = 'assets/icons/left.png';
-        leftArrow.style.cssText = 'position:absolute;left:2%;top:50%;transform:translateY(-50%);width:8vw;max-width:50px;cursor:pointer;z-index:10;';
+        leftArrow.style.cssText = 'position:absolute;left:2%;top:50%;transform:translateY(-50%);width:8vw;max-width:50px;cursor:pointer;z-index:6;';
         leftArrow.onclick = () => this.prev();
         this.screen.appendChild(leftArrow);
         
         const rightArrow = document.createElement('img');
         rightArrow.src = 'assets/icons/right.png';
-        rightArrow.style.cssText = 'position:absolute;right:2%;top:50%;transform:translateY(-50%);width:8vw;max-width:50px;cursor:pointer;z-index:10;';
+        rightArrow.style.cssText = 'position:absolute;right:2%;top:50%;transform:translateY(-50%);width:8vw;max-width:50px;cursor:pointer;z-index:6;';
         rightArrow.onclick = () => this.next();
         this.screen.appendChild(rightArrow);
     },
     
     buildCarousel() {
         this.iconContainer.innerHTML = '';
+        this.iconContainer.style.display = 'flex';
+        this.iconContainer.style.whiteSpace = 'nowrap';
         
         this.buildings.forEach((building) => {
             const section = document.createElement('div');
-            section.style.cssText = 'display:inline-block;width:100%;height:100%;text-align:center;vertical-align:top;cursor:pointer;';
+            section.style.cssText = 'flex:0 0 100%;height:100%;text-align:center;cursor:pointer;';
             
             const img = new Image();
             img.src = `assets/icons/${this.getIconFile(building.icon)}`;
-            img.style.cssText = 'width:25%;height:60%;object-fit:contain;margin-top:5%;pointer-events:none;display:block;margin-left:auto;margin-right:auto;';
+            img.style.cssText = 'width:25%;height:60%;object-fit:contain;margin:5% auto 0;pointer-events:none;';
             
             const label = document.createElement('div');
             label.textContent = building.name;
