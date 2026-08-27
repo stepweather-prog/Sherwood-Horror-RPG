@@ -1,7 +1,4 @@
-/**
- * Sherwood Combat — Боевая система (16 скиллов)
- */
-
+// js/combat.js — обновлённые скиллы
 Sherwood.Combat = {
     _battle: null,
     _skills: {},
@@ -9,28 +6,26 @@ Sherwood.Combat = {
 
     init: function() {
         this._skills = {
-            triple_shot: { id: 'triple_shot', name: 'Тройной выстрел', icon: 'assets/skills/triple_shot_skill.png', description: '3 выстрела по 70% урона', damageMultiplier: 0.7, hits: 3, cooldown: 2, currentCooldown: 0, unlocked: true, cost: 0, type: 'damage' },
-            power_shot: { id: 'power_shot', name: 'Критический выстрел', icon: 'assets/skills/skill_critical_shot.png', description: 'Выстрел с 200% урона и шансом крита 50%', damageMultiplier: 2.0, critChance: 0.5, hits: 1, cooldown: 3, currentCooldown: 0, unlocked: true, cost: 100, type: 'damage' },
-            poison_arrow: { id: 'poison_arrow', name: 'Ядовитый выстрел', icon: 'assets/skills/poison_shot_skill.png', description: 'Отравляет врага на 3 хода (5% HP за ход)', damageMultiplier: 0.6, hits: 1, dotDamage: 0.05, dotDuration: 3, cooldown: 4, currentCooldown: 0, unlocked: true, cost: 0, type: 'damage' },
-            ricochet: { id: 'ricochet', name: 'Рикошет', icon: 'assets/skills/ricochet_skill.png', description: 'Удар отскакивает и наносит 50% урона второй раз', damageMultiplier: 1.0, ricochetDamage: 0.5, hits: 1, cooldown: 3, currentCooldown: 0, unlocked: true, cost: 50, type: 'damage' },
-            fire_shot: { id: 'fire_shot', name: 'Огненный выстрел', icon: 'assets/skills/skill_shot_fire.png', description: 'Поджигает врага: 8% HP за ход, 3 хода', damageMultiplier: 0.8, hits: 1, dotDamage: 0.08, dotDuration: 3, cooldown: 4, currentCooldown: 0, unlocked: false, cost: 200, type: 'damage' },
-            cold_shot: { id: 'cold_shot', name: 'Ледяной выстрел', icon: 'assets/skills/skill_shot_of_cold.png', description: 'Замедляет врага: -50% урона на 2 хода', damageMultiplier: 0.7, hits: 1, slowPercent: 0.5, slowDuration: 2, cooldown: 3, currentCooldown: 0, unlocked: false, cost: 150, type: 'damage' },
-            piercing_shot: { id: 'piercing_shot', name: 'Пробивающий выстрел', icon: 'assets/skills/skill_piercing_shot.png', description: 'Игнорирует 50% защиты врага', damageMultiplier: 1.2, armorPierce: 0.5, hits: 1, cooldown: 3, currentCooldown: 0, unlocked: false, cost: 150, type: 'damage' },
-            grad_arrows: { id: 'grad_arrows', name: 'Град стрел', icon: 'assets/skills/skill_grad_arrows.png', description: '5 выстрелов по 40% урона', damageMultiplier: 0.4, hits: 5, cooldown: 5, currentCooldown: 0, unlocked: false, cost: 300, type: 'damage' },
-            vampirism: { id: 'vampirism', name: 'Вампиризм', icon: 'assets/skills/skill_vampirism.png', description: 'Восстанавливает 50% нанесённого урона', damageMultiplier: 1.0, lifesteal: 0.5, hits: 1, cooldown: 4, currentCooldown: 0, unlocked: false, cost: 250, type: 'damage' },
-            parry: { id: 'parry', name: 'Парирование', icon: 'assets/skills/skill_parry.png', description: 'Отражает 100% урона врага 1 ход', damageMultiplier: 0, parry: true, hits: 1, cooldown: 5, currentCooldown: 0, unlocked: false, cost: 200, type: 'defense' },
-            double_defense: { id: 'double_defense', name: 'Двойная защита', icon: 'assets/skills/skill_double_defense.png', description: 'Удваивает защиту на 2 хода', damageMultiplier: 0, defenseBoost: 1.0, defenseDuration: 2, hits: 1, cooldown: 4, currentCooldown: 0, unlocked: false, cost: 200, type: 'defense' },
-            roots: { id: 'roots', name: 'Корни земли', icon: 'assets/skills/skill_element_of_roots.png', description: 'Опутывает врага: -30% урона и 3% HP за ход', damageMultiplier: 0.5, hits: 1, rootDamage: 0.03, rootSlow: 0.3, rootDuration: 3, cooldown: 4, currentCooldown: 0, unlocked: false, cost: 300, type: 'damage' },
-            double_damage: { id: 'double_damage', name: 'Двойной урон', icon: 'assets/skills/skill_boost_agility_double_damage.png', description: 'Удваивает урон на 2 хода', damageMultiplier: 1.0, damageBoost: 1.0, boostDuration: 2, hits: 1, cooldown: 5, currentCooldown: 0, unlocked: false, cost: 400, type: 'buff' },
-            health: { id: 'health', name: 'Лечение', icon: 'assets/skills/health_skill.png', description: 'Восстанавливает 15% максимального HP', damageMultiplier: 0, healPercent: 0.15, hits: 1, cooldown: 4, currentCooldown: 0, unlocked: true, cost: 0, type: 'heal' },
-            passive_block: { id: 'passive_block', name: 'Пассивный блок', icon: 'assets/skills/passive_blocking_skill.png', description: 'Шанс 30% заблокировать урон врага', damageMultiplier: 1.0, blockChance: 0.3, hits: 1, cooldown: 0, currentCooldown: 0, unlocked: true, passive: true, cost: 0, type: 'passive' },
-            control: { id: 'control', name: 'Контроль', icon: 'assets/skills/control_skill.png', description: 'Оглушает врага на 1 ход', damageMultiplier: 0.3, stunDuration: 1, hits: 1, cooldown: 5, currentCooldown: 0, unlocked: false, cost: 350, type: 'damage' }
+            simple_attack: { id: 'simple_attack', name: 'Простая атака', icon: 'assets/talents/simple_attack.png', description: 'Базовая атака', damageMultiplier: 1.0, hits: 1, cooldown: 0, currentCooldown: 0, unlocked: true, cost: 0, type: 'damage' },
+            healing: { id: 'healing', name: 'Исцеление', icon: 'assets/talents/healing.png', description: 'Восстанавливает 20% максимального HP', damageMultiplier: 0, healPercent: 0.20, hits: 1, cooldown: 4, currentCooldown: 0, unlocked: true, cost: 0, type: 'heal' },
+            healer: { id: 'healer', name: 'Целитель', icon: 'assets/talents/Healer.png', description: 'Усиливает исцеление на 50%', damageMultiplier: 0, healBoost: 0.5, hits: 1, cooldown: 0, currentCooldown: 0, unlocked: true, cost: 0, type: 'passive' },
+            numbness: { id: 'numbness', name: 'Онемение', icon: 'assets/talents/Numbness.png', description: 'Снижает урон врага на 30% на 2 хода', damageMultiplier: 0, enemyDamageReduction: 0.3, duration: 2, hits: 1, cooldown: 4, currentCooldown: 0, unlocked: true, cost: 0, type: 'debuff' },
+            ricochet: { id: 'ricochet', name: 'Рикошет', icon: 'assets/talents/Ricochet.png', description: 'Атака бьёт двух врагов', damageMultiplier: 0.8, hits: 2, cooldown: 3, currentCooldown: 0, unlocked: true, cost: 0, type: 'damage' },
+            riot: { id: 'riot', name: 'Бунт', icon: 'assets/talents/Riot.png', description: 'Увеличивает шанс крита на 30%', damageMultiplier: 1.0, critChanceBonus: 0.3, hits: 1, cooldown: 3, currentCooldown: 0, unlocked: true, cost: 0, type: 'buff' },
+            silence: { id: 'silence', name: 'Тишина', icon: 'assets/talents/Silence.png', description: 'Блокирует способности врага на 1 ход', damageMultiplier: 0.5, silenceDuration: 1, hits: 1, cooldown: 5, currentCooldown: 0, unlocked: true, cost: 0, type: 'debuff' },
+            blocking: { id: 'blocking', name: 'Блок', icon: 'assets/talents/blocking.png', description: 'Шанс 40% заблокировать удар', damageMultiplier: 0, blockChance: 0.4, hits: 1, cooldown: 0, currentCooldown: 0, unlocked: true, cost: 0, type: 'passive' },
+            evil_eye: { id: 'evil_eye', name: 'Сглаз', icon: 'assets/talents/evil_eye.png', description: 'Снижает защиту врага на 50% на 2 хода', damageMultiplier: 0.3, defenseReduction: 0.5, duration: 2, hits: 1, cooldown: 4, currentCooldown: 0, unlocked: true, cost: 0, type: 'debuff' },
+            force_elements: { id: 'force_elements', name: 'Сила стихий', icon: 'assets/talents/force of the elements.png', description: 'Добавляет стихийный урон 30%', damageMultiplier: 1.3, hits: 1, cooldown: 4, currentCooldown: 0, unlocked: true, cost: 0, type: 'damage' },
+            funnel: { id: 'funnel', name: 'Воронка', icon: 'assets/talents/funnel.png', description: 'Вытягивает 40% HP от урона', damageMultiplier: 1.0, lifesteal: 0.4, hits: 1, cooldown: 4, currentCooldown: 0, unlocked: true, cost: 0, type: 'damage' },
+            ignore: { id: 'ignore', name: 'Игнор', icon: 'assets/talents/ignore.png', description: 'Игнорирует 50% брони врага', damageMultiplier: 1.1, armorPierce: 0.5, hits: 1, cooldown: 3, currentCooldown: 0, unlocked: true, cost: 0, type: 'damage' },
+            inspiration: { id: 'inspiration', name: 'Вдохновение', icon: 'assets/talents/inspiration.png', description: 'Увеличивает опыт на 50%', damageMultiplier: 1.0, expBoost: 0.5, hits: 1, cooldown: 5, currentCooldown: 0, unlocked: true, cost: 0, type: 'buff' },
+            knot: { id: 'knot', name: 'Узел', icon: 'assets/talents/knot.png', description: 'Сковывает врага на 2 хода', damageMultiplier: 0.4, rootDuration: 2, hits: 1, cooldown: 4, currentCooldown: 0, unlocked: true, cost: 0, type: 'debuff' },
+            parry: { id: 'parry', name: 'Парирование', icon: 'assets/talents/parry.png', description: 'Отражает 100% урона 1 ход', damageMultiplier: 0, parry: true, hits: 1, cooldown: 5, currentCooldown: 0, unlocked: true, cost: 0, type: 'defense' },
+            poisoning: { id: 'poisoning', name: 'Отравление', icon: 'assets/talents/poisoning.png', description: 'Наносит 7% HP врага за ход, 3 хода', damageMultiplier: 0.6, dotDamage: 0.07, dotDuration: 3, hits: 1, cooldown: 4, currentCooldown: 0, unlocked: true, cost: 0, type: 'damage' },
+            stunning: { id: 'stunning', name: 'Оглушение', icon: 'assets/talents/stunning.png', description: 'Оглушает врага на 1 ход', damageMultiplier: 0.4, stunDuration: 1, hits: 1, cooldown: 5, currentCooldown: 0, unlocked: true, cost: 0, type: 'debuff' },
+            vampirism: { id: 'vampirism', name: 'Вампиризм', icon: 'assets/talents/vampirism.png', description: 'Восстанавливает 50% урона как HP', damageMultiplier: 0.9, lifesteal: 0.5, hits: 1, cooldown: 4, currentCooldown: 0, unlocked: true, cost: 0, type: 'damage' },
         };
-        this._playerBuffs = {
-            double_damage: { remainingTurns: 0 },
-            double_defense: { remainingTurns: 0 },
-            parry: { remainingTurns: 0 }
-        };
+        this._playerBuffs = {};
     },
 
     getSkills: function() {
@@ -97,17 +92,17 @@ Sherwood.Combat = {
             mode: mode || 'dungeon',
             dots: [],
             stunned: 0,
-            slowed: { percent: 0, remainingTurns: 0 },
-            rooted: { damage: 0, slow: 0, remainingTurns: 0 }
+            silenced: 0,
+            defenseReduced: { percent: 0, remainingTurns: 0 },
+            damageReduced: { percent: 0, remainingTurns: 0 },
+            rooted: { remainingTurns: 0 }
         };
 
         this._battle = {
             enemy: enemy,
             playerHp: p.stats.hp,
             playerMaxHp: p.stats.maxHp,
-            turn: 0,
-            attackCounter: 0,
-            chargedSkills: []
+            turn: 0
         };
 
         for (var id in this._skills) {
@@ -115,9 +110,9 @@ Sherwood.Combat = {
         }
 
         this._playerBuffs = {
-            double_damage: { remainingTurns: 0 },
-            double_defense: { remainingTurns: 0 },
-            parry: { remainingTurns: 0 }
+            parry: { remainingTurns: 0 },
+            riot: { remainingTurns: 0 },
+            inspiration: { remainingTurns: 0 }
         };
 
         return this._battle;
@@ -145,28 +140,8 @@ Sherwood.Combat = {
         }
     },
 
-    _getRandomChargedSkills: function() {
-        var unlocked = [];
-        for (var id in this._skills) {
-            if (this._skills[id].unlocked && !this._skills[id].passive && this._skills[id].type !== 'passive') {
-                unlocked.push(id);
-            }
-        }
-
-        for (var i = unlocked.length - 1; i > 0; i--) {
-            var j = Math.floor(Math.random() * (i + 1));
-            var tmp = unlocked[i];
-            unlocked[i] = unlocked[j];
-            unlocked[j] = tmp;
-        }
-
-        return unlocked.slice(0, 2);
-    },
-
     _calculateDamage: function(attack, defense) {
-        var baseDamage = attack * 0.1;
-        var pierceDamage = Math.max(0, attack - defense) * 0.4;
-        var damage = Math.max(1, Math.floor(baseDamage + pierceDamage));
+        var damage = Math.max(1, Math.floor(attack * 0.15 + (attack - defense) * 0.25));
         var spread = Math.floor(Math.random() * 5);
         damage += spread;
         return damage;
@@ -180,20 +155,14 @@ Sherwood.Combat = {
 
         this._tickCooldowns();
 
-        if (!b.attackCounter) b.attackCounter = 0;
-        b.attackCounter++;
-
-        if (b.attackCounter >= 2) {
-            b.attackCounter = 0;
-            b.chargedSkills = this._getRandomChargedSkills();
-        }
-
         var rawDamage = this._calculateDamage(p.stats.attack, b.enemy.defense);
 
-        var damageBonus = this._playerBuffs.double_damage.remainingTurns > 0 ? 1.0 : 0;
-        rawDamage = Math.floor(rawDamage * (1 + damageBonus));
+        var critChance = 0.15;
+        if (this._playerBuffs.riot && this._playerBuffs.riot.remainingTurns > 0) {
+            critChance += 0.3;
+        }
 
-        var crit = Math.random() * 100 < 15;
+        var crit = Math.random() < critChance;
         if (crit) rawDamage = Math.floor(rawDamage * 1.8);
 
         b.enemy.hp -= rawDamage;
@@ -210,7 +179,8 @@ Sherwood.Combat = {
 
         if (b.enemy.hp <= 0) {
             result.win = true;
-            result.exp = Math.floor(b.enemy.maxHp * 0.3);
+            var expBonus = (this._playerBuffs.inspiration && this._playerBuffs.inspiration.remainingTurns > 0) ? 1.5 : 1;
+            result.exp = Math.floor(b.enemy.maxHp * 0.3 * expBonus);
             result.gold = Math.floor(b.enemy.maxHp * 0.1);
             this._battle = null;
             return result;
@@ -230,6 +200,8 @@ Sherwood.Combat = {
         result.playerHp = b.playerHp;
         result.enemyDamage = enemyResult.enemyDamage;
 
+        this._tickBuffs();
+
         Sherwood.saveGame();
         return result;
     },
@@ -240,11 +212,13 @@ Sherwood.Combat = {
         var skill = this._skills[skillId];
         if (!skill) return { error: 'Скилл не найден' };
         if (!skill.unlocked) return { error: 'Скилл не открыт' };
+        if (skill.currentCooldown > 0) return { error: 'Перезарядка: ' + skill.currentCooldown };
 
         var b = this._battle;
         var p = Sherwood.getPlayer();
 
         this._tickCooldowns();
+        skill.currentCooldown = skill.cooldown;
 
         var result = {
             skillName: skill.name,
@@ -271,36 +245,61 @@ Sherwood.Combat = {
                     this._playerBuffs.parry.remainingTurns = 1;
                     result.effects.push('Парирование активно');
                 }
-                if (skill.defenseBoost) {
-                    this._playerBuffs.double_defense.remainingTurns = skill.defenseDuration;
-                    result.effects.push('Защита удвоена на ' + skill.defenseDuration + ' хода');
-                }
                 break;
 
             case 'buff':
-                if (skill.damageBoost) {
-                    this._playerBuffs.double_damage.remainingTurns = skill.boostDuration;
-                    result.effects.push('Урон удвоен на ' + skill.boostDuration + ' хода');
+                if (skill.critChanceBonus) {
+                    this._playerBuffs.riot.remainingTurns = 2;
+                    result.effects.push('Шанс крита +30% на 2 хода');
+                }
+                if (skill.expBoost) {
+                    this._playerBuffs.inspiration.remainingTurns = 2;
+                    result.effects.push('Опыт +50% на 2 хода');
+                }
+                break;
+
+            case 'debuff':
+                if (skill.enemyDamageReduction) {
+                    b.enemy.damageReduced.percent = skill.enemyDamageReduction;
+                    b.enemy.damageReduced.remainingTurns = skill.duration;
+                    result.effects.push('Урон врага снижен на 30%');
+                }
+                if (skill.silenceDuration) {
+                    b.enemy.silenced = skill.silenceDuration;
+                    result.effects.push('Враг блокирован на ' + skill.silenceDuration + ' ход');
+                }
+                if (skill.defenseReduction) {
+                    b.enemy.defenseReduced.percent = skill.defenseReduction;
+                    b.enemy.defenseReduced.remainingTurns = skill.duration;
+                    result.effects.push('Защита врага снижена');
+                }
+                if (skill.rootDuration) {
+                    b.enemy.rooted.remainingTurns = skill.rootDuration;
+                    result.effects.push('Враг скован на ' + skill.rootDuration + ' хода');
+                }
+                if (skill.stunDuration) {
+                    b.enemy.stunned = skill.stunDuration;
+                    result.effects.push('Враг оглушён');
                 }
                 break;
 
             default:
                 var totalDamage = 0;
                 var hits = skill.hits || 1;
-                var armorPierce = skill.armorPierce || 0;
-                var effectiveDefense = b.enemy.defense * (1 - armorPierce);
+                var effectiveDefense = b.enemy.defense;
+
+                if (skill.armorPierce) {
+                    effectiveDefense = Math.floor(effectiveDefense * (1 - skill.armorPierce));
+                }
+
+                if (b.enemy.defenseReduced.remainingTurns > 0) {
+                    effectiveDefense = Math.floor(effectiveDefense * (1 - b.enemy.defenseReduced.percent));
+                }
 
                 for (var h = 0; h < hits; h++) {
                     var hitDamage = this._calculateDamage(p.stats.attack * skill.damageMultiplier, effectiveDefense);
-
-                    if (skill.critChance && Math.random() < skill.critChance) {
-                        hitDamage = Math.floor(hitDamage * 1.8);
-                        result.crit = true;
-                    }
-
                     totalDamage += hitDamage;
                     b.enemy.hp -= hitDamage;
-
                     if (b.enemy.hp < 0) b.enemy.hp = 0;
                     if (b.enemy.hp <= 0) break;
                 }
@@ -308,51 +307,19 @@ Sherwood.Combat = {
                 result.damage = totalDamage;
                 result.hits = hits;
 
-                if (skill.ricochetDamage && b.enemy.hp > 0) {
-                    var ricochetDamage = Math.floor(totalDamage * skill.ricochetDamage);
-                    b.enemy.hp -= ricochetDamage;
-                    result.damage += ricochetDamage;
-                    result.effects.push('Рикошет: +' + ricochetDamage);
-                }
-
                 if (skill.dotDamage && skill.dotDuration && b.enemy.hp > 0) {
-                    b.enemy.dots.push({ damagePerTurn: skill.dotDamage, remainingTurns: skill.dotDuration, name: skill.name });
-                    result.effects.push(skill.name + ' на ' + skill.dotDuration + ' хода');
-                }
-
-                if (skill.slowPercent && skill.slowDuration && b.enemy.hp > 0) {
-                    b.enemy.slowed.percent = skill.slowPercent;
-                    b.enemy.slowed.remainingTurns = skill.slowDuration;
-                    result.effects.push('Враг замедлен на ' + skill.slowDuration + ' хода');
-                }
-
-                if (skill.rootDamage && skill.rootDuration && b.enemy.hp > 0) {
-                    b.enemy.rooted.damage = skill.rootDamage;
-                    b.enemy.rooted.slow = skill.rootSlow;
-                    b.enemy.rooted.remainingTurns = skill.rootDuration;
-                    result.effects.push('Корни на ' + skill.rootDuration + ' хода');
-                }
-
-                if (skill.stunDuration && b.enemy.hp > 0) {
-                    b.enemy.stunned = skill.stunDuration;
-                    result.effects.push('Враг оглушён на ' + skill.stunDuration + ' ход');
+                    b.enemy.dots.push({ damagePerTurn: skill.dotDamage, remainingTurns: skill.dotDuration });
+                    result.effects.push('Отравление на ' + skill.dotDuration + ' хода');
                 }
 
                 if (skill.lifesteal && totalDamage > 0) {
-                    var lifestealAmount = Math.floor(totalDamage * skill.lifesteal);
-                    p.stats.hp = Math.min(p.stats.maxHp, p.stats.hp + lifestealAmount);
+                    var lsAmount = Math.floor(totalDamage * skill.lifesteal);
+                    p.stats.hp = Math.min(p.stats.maxHp, p.stats.hp + lsAmount);
                     b.playerHp = p.stats.hp;
-                    result.heal = lifestealAmount;
-                    result.effects.push('+ ' + lifestealAmount + ' HP (вампиризм)');
+                    result.heal = lsAmount;
+                    result.effects.push('+ ' + lsAmount + ' HP');
                 }
                 break;
-        }
-
-        if (b.chargedSkills) {
-            var idx = b.chargedSkills.indexOf(skillId);
-            if (idx !== -1) {
-                b.chargedSkills[idx] = null;
-            }
         }
 
         result.enemyHp = b.enemy.hp;
@@ -361,7 +328,8 @@ Sherwood.Combat = {
         if (b.enemy.hp <= 0) {
             result.enemyDead = true;
             result.win = true;
-            result.exp = Math.floor(b.enemy.maxHp * 0.3);
+            var expBonus2 = (this._playerBuffs.inspiration && this._playerBuffs.inspiration.remainingTurns > 0) ? 1.5 : 1;
+            result.exp = Math.floor(b.enemy.maxHp * 0.3 * expBonus2);
             result.gold = Math.floor(b.enemy.maxHp * 0.1);
             this._battle = null;
             return result;
@@ -375,8 +343,6 @@ Sherwood.Combat = {
 
             if (enemyResult.playerDead) {
                 result.playerDead = true;
-                result.exp = Math.floor(b.enemy.maxHp * 0.1);
-                result.gold = 0;
                 this._battle = null;
                 return result;
             }
@@ -384,12 +350,7 @@ Sherwood.Combat = {
             result.enemyDamage = enemyResult.enemyDamage;
         }
 
-        if (this._playerBuffs.double_damage.remainingTurns > 0) this._playerBuffs.double_damage.remainingTurns--;
-        if (this._playerBuffs.double_defense.remainingTurns > 0) this._playerBuffs.double_defense.remainingTurns--;
-        if (this._playerBuffs.parry.remainingTurns > 0) this._playerBuffs.parry.remainingTurns--;
-
-        if (b.enemy.slowed.remainingTurns > 0) b.enemy.slowed.remainingTurns--;
-        if (b.enemy.rooted.remainingTurns > 0) b.enemy.rooted.remainingTurns--;
+        this._tickBuffs();
 
         p.stats.hp = b.playerHp;
         result.playerHp = b.playerHp;
@@ -404,32 +365,30 @@ Sherwood.Combat = {
         var b = this._battle;
         var p = Sherwood.getPlayer();
 
-        if (this._playerBuffs.parry.remainingTurns > 0) {
+        if (this._playerBuffs.parry && this._playerBuffs.parry.remainingTurns > 0) {
             return { playerDead: false, enemyDamage: 0, parried: true };
         }
 
         var attackValue = b.enemy.attack;
 
-        if (b.enemy.slowed.remainingTurns > 0) {
-            attackValue = Math.floor(attackValue * (1 - b.enemy.slowed.percent));
+        if (b.enemy.damageReduced.remainingTurns > 0) {
+            attackValue = Math.floor(attackValue * (1 - b.enemy.damageReduced.percent));
+        }
+
+        if (b.enemy.silenced > 0) {
+            attackValue = Math.floor(attackValue * 0.5);
         }
 
         if (b.enemy.rooted.remainingTurns > 0) {
-            attackValue = Math.floor(attackValue * (1 - b.enemy.rooted.slow));
+            attackValue = Math.floor(attackValue * 0.7);
         }
 
         var defenseValue = p.stats.defense;
-
-        if (this._playerBuffs.double_defense.remainingTurns > 0) {
-            defenseValue *= 2;
-        }
-
         var enemyDamage = this._calculateDamage(attackValue, defenseValue);
 
-        var passiveBlock = this._skills.passive_block;
-
-        if (passiveBlock && passiveBlock.unlocked && passiveBlock.blockChance) {
-            if (Math.random() < passiveBlock.blockChance) {
+        var blockSkill = this._skills.blocking;
+        if (blockSkill && blockSkill.unlocked && blockSkill.blockChance) {
+            if (Math.random() < blockSkill.blockChance) {
                 enemyDamage = 0;
             }
         }
@@ -443,6 +402,26 @@ Sherwood.Combat = {
             enemyDamage: enemyDamage,
             playerHp: b.playerHp
         };
+    },
+
+    _tickBuffs: function() {
+        if (this._playerBuffs.parry && this._playerBuffs.parry.remainingTurns > 0) {
+            this._playerBuffs.parry.remainingTurns--;
+        }
+        if (this._playerBuffs.riot && this._playerBuffs.riot.remainingTurns > 0) {
+            this._playerBuffs.riot.remainingTurns--;
+        }
+        if (this._playerBuffs.inspiration && this._playerBuffs.inspiration.remainingTurns > 0) {
+            this._playerBuffs.inspiration.remainingTurns--;
+        }
+
+        if (this._battle && this._battle.enemy) {
+            var e = this._battle.enemy;
+            if (e.damageReduced.remainingTurns > 0) e.damageReduced.remainingTurns--;
+            if (e.defenseReduced.remainingTurns > 0) e.defenseReduced.remainingTurns--;
+            if (e.rooted.remainingTurns > 0) e.rooted.remainingTurns--;
+            if (e.silenced > 0) e.silenced--;
+        }
     },
 
     flee: function() {
