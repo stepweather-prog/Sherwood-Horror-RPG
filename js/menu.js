@@ -1,4 +1,4 @@
-// js/menu.js — ПОЛНЫЙ, РАБОЧИЙ, СЛОИ ПРАВИЛЬНЫЕ
+// js/menu.js
 const Menu = {
     buildings: [
         { icon: 'Квесты', name: 'Квесты' },
@@ -24,6 +24,7 @@ const Menu = {
     currentIndex: 0,
     screen: null,
     iconContainer: null,
+    track: null,
     isAnimating: false,
     stepVideo: null,
     stepTimer: null,
@@ -57,20 +58,20 @@ const Menu = {
         
         // СЛОЙ 4: Иконки — карусель ПОВЕРХ стены
         this.iconContainer = document.createElement('div');
-        this.iconContainer.style.cssText = 'position:absolute;top:25%;left:0;width:100%;height:50%;white-space:nowrap;overflow:hidden;z-index:3;';
+        this.iconContainer.style.cssText = 'position:absolute;top:25%;left:0;width:100%;height:50%;overflow:hidden;z-index:3;';
         this.screen.appendChild(this.iconContainer);
         this.buildCarousel();
         
-        // СЛОЙ 5: Разделители ПОВЕРХ иконок
-        for (let i = 0; i < 3; i++) {
+        // СЛОЙ 5: Разделители ПОВЕРХ стыков
+        for (let i = 0; i <= 3; i++) {
             const seamTop = document.createElement('img');
             seamTop.src = 'assets/game_details/seam_top.png';
-            seamTop.style.cssText = `position:absolute;top:25%;left:${i * 33.33}%;transform:translate(-50%,-50%);z-index:4;`;
+            seamTop.style.cssText = `position:absolute;top:25%;left:${i * 33.33}%;transform:translate(-50%,-50%);width:12vw;max-width:60px;z-index:4;pointer-events:none;`;
             this.screen.appendChild(seamTop);
             
             const seamBottom = document.createElement('img');
             seamBottom.src = 'assets/game_details/seam_bottom.png';
-            seamBottom.style.cssText = `position:absolute;top:75%;left:${i * 33.33}%;transform:translate(-50%,-50%);z-index:4;`;
+            seamBottom.style.cssText = `position:absolute;top:75%;left:${i * 33.33}%;transform:translate(-50%,-50%);width:12vw;max-width:60px;z-index:4;pointer-events:none;`;
             this.screen.appendChild(seamBottom);
         }
         
@@ -106,26 +107,28 @@ const Menu = {
     
     buildCarousel() {
         this.iconContainer.innerHTML = '';
-        this.iconContainer.style.display = 'flex';
-        this.iconContainer.style.whiteSpace = 'nowrap';
+        
+        this.track = document.createElement('div');
+        this.track.style.cssText = 'display:flex;width:100%;height:100%;transition:transform 0.4s ease;';
+        this.iconContainer.appendChild(this.track);
         
         this.buildings.forEach((building) => {
             const section = document.createElement('div');
-            section.style.cssText = 'flex:0 0 100%;height:100%;text-align:center;cursor:pointer;';
+            section.style.cssText = 'min-width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;';
             
             const img = new Image();
             img.src = `assets/icons/${this.getIconFile(building.icon)}`;
-            img.style.cssText = 'width:25%;height:60%;object-fit:contain;margin:5% auto 0;pointer-events:none;';
+            img.style.cssText = 'width:30%;height:auto;max-height:65%;object-fit:contain;pointer-events:none;';
             
             const label = document.createElement('div');
             label.textContent = building.name;
-            label.style.cssText = 'color:#e8d8c0;font-size:1.1em;font-weight:bold;pointer-events:none;';
+            label.style.cssText = 'color:#e8d8c0;font-size:1.1em;font-weight:bold;margin-top:4px;pointer-events:none;';
             
             section.appendChild(img);
             section.appendChild(label);
             section.onclick = () => this.interact(building);
             
-            this.iconContainer.appendChild(section);
+            this.track.appendChild(section);
         });
         
         this.updatePosition(false);
@@ -157,8 +160,8 @@ const Menu = {
     
     updatePosition(animate = true) {
         const offset = -this.currentIndex * 100;
-        this.iconContainer.style.transition = animate ? 'transform 0.4s ease' : 'none';
-        this.iconContainer.style.transform = `translateX(${offset}%)`;
+        this.track.style.transition = animate ? 'transform 0.4s ease' : 'none';
+        this.track.style.transform = `translateX(${offset}%)`;
     },
     
     next() {
