@@ -1,456 +1,211 @@
-// js/combat.js — обновлённые скиллы
-Sherwood.Combat = {
-    _battle: null,
-    _skills: {},
-    _playerBuffs: {},
+// js/combat-ui.js
+Sherwood.CombatUI = {
+    _arenaDefeatShown: false,
+    _arenaVictoryShown: false,
+    _arenaCooldownInterval: null,
+    _currentArenaOpponents: null,
+    _currentArenaOpponentIndex: 0,
 
     init: function() {
-        this._skills = {
-            simple_attack: { id: 'simple_attack', name: 'Простая атака', icon: 'assets/talents/simple_attack.png', description: 'Базовая атака', damageMultiplier: 1.0, hits: 1, cooldown: 0, currentCooldown: 0, unlocked: true, cost: 0, type: 'damage' },
-            healing: { id: 'healing', name: 'Исцеление', icon: 'assets/talents/healing.png', description: 'Восстанавливает 20% максимального HP', damageMultiplier: 0, healPercent: 0.20, hits: 1, cooldown: 4, currentCooldown: 0, unlocked: true, cost: 0, type: 'heal' },
-            healer: { id: 'healer', name: 'Целитель', icon: 'assets/talents/Healer.png', description: 'Усиливает исцеление на 50%', damageMultiplier: 0, healBoost: 0.5, hits: 1, cooldown: 0, currentCooldown: 0, unlocked: true, cost: 0, type: 'passive' },
-            numbness: { id: 'numbness', name: 'Онемение', icon: 'assets/talents/Numbness.png', description: 'Снижает урон врага на 30% на 2 хода', damageMultiplier: 0, enemyDamageReduction: 0.3, duration: 2, hits: 1, cooldown: 4, currentCooldown: 0, unlocked: true, cost: 0, type: 'debuff' },
-            ricochet: { id: 'ricochet', name: 'Рикошет', icon: 'assets/talents/Ricochet.png', description: 'Атака бьёт двух врагов', damageMultiplier: 0.8, hits: 2, cooldown: 3, currentCooldown: 0, unlocked: true, cost: 0, type: 'damage' },
-            riot: { id: 'riot', name: 'Бунт', icon: 'assets/talents/Riot.png', description: 'Увеличивает шанс крита на 30%', damageMultiplier: 1.0, critChanceBonus: 0.3, hits: 1, cooldown: 3, currentCooldown: 0, unlocked: true, cost: 0, type: 'buff' },
-            silence: { id: 'silence', name: 'Тишина', icon: 'assets/talents/Silence.png', description: 'Блокирует способности врага на 1 ход', damageMultiplier: 0.5, silenceDuration: 1, hits: 1, cooldown: 5, currentCooldown: 0, unlocked: true, cost: 0, type: 'debuff' },
-            blocking: { id: 'blocking', name: 'Блок', icon: 'assets/talents/blocking.png', description: 'Шанс 40% заблокировать удар', damageMultiplier: 0, blockChance: 0.4, hits: 1, cooldown: 0, currentCooldown: 0, unlocked: true, cost: 0, type: 'passive' },
-            evil_eye: { id: 'evil_eye', name: 'Сглаз', icon: 'assets/talents/evil_eye.png', description: 'Снижает защиту врага на 50% на 2 хода', damageMultiplier: 0.3, defenseReduction: 0.5, duration: 2, hits: 1, cooldown: 4, currentCooldown: 0, unlocked: true, cost: 0, type: 'debuff' },
-            force_elements: { id: 'force_elements', name: 'Сила стихий', icon: 'assets/talents/force of the elements.png', description: 'Добавляет стихийный урон 30%', damageMultiplier: 1.3, hits: 1, cooldown: 4, currentCooldown: 0, unlocked: true, cost: 0, type: 'damage' },
-            funnel: { id: 'funnel', name: 'Воронка', icon: 'assets/talents/funnel.png', description: 'Вытягивает 40% HP от урона', damageMultiplier: 1.0, lifesteal: 0.4, hits: 1, cooldown: 4, currentCooldown: 0, unlocked: true, cost: 0, type: 'damage' },
-            ignore: { id: 'ignore', name: 'Игнор', icon: 'assets/talents/ignore.png', description: 'Игнорирует 50% брони врага', damageMultiplier: 1.1, armorPierce: 0.5, hits: 1, cooldown: 3, currentCooldown: 0, unlocked: true, cost: 0, type: 'damage' },
-            inspiration: { id: 'inspiration', name: 'Вдохновение', icon: 'assets/talents/inspiration.png', description: 'Увеличивает опыт на 50%', damageMultiplier: 1.0, expBoost: 0.5, hits: 1, cooldown: 5, currentCooldown: 0, unlocked: true, cost: 0, type: 'buff' },
-            knot: { id: 'knot', name: 'Узел', icon: 'assets/talents/knot.png', description: 'Сковывает врага на 2 хода', damageMultiplier: 0.4, rootDuration: 2, hits: 1, cooldown: 4, currentCooldown: 0, unlocked: true, cost: 0, type: 'debuff' },
-            parry: { id: 'parry', name: 'Парирование', icon: 'assets/talents/parry.png', description: 'Отражает 100% урона 1 ход', damageMultiplier: 0, parry: true, hits: 1, cooldown: 5, currentCooldown: 0, unlocked: true, cost: 0, type: 'defense' },
-            poisoning: { id: 'poisoning', name: 'Отравление', icon: 'assets/talents/poisoning.png', description: 'Наносит 7% HP врага за ход, 3 хода', damageMultiplier: 0.6, dotDamage: 0.07, dotDuration: 3, hits: 1, cooldown: 4, currentCooldown: 0, unlocked: true, cost: 0, type: 'damage' },
-            stunning: { id: 'stunning', name: 'Оглушение', icon: 'assets/talents/stunning.png', description: 'Оглушает врага на 1 ход', damageMultiplier: 0.4, stunDuration: 1, hits: 1, cooldown: 5, currentCooldown: 0, unlocked: true, cost: 0, type: 'debuff' },
-            vampirism: { id: 'vampirism', name: 'Вампиризм', icon: 'assets/talents/vampirism.png', description: 'Восстанавливает 50% урона как HP', damageMultiplier: 0.9, lifesteal: 0.5, hits: 1, cooldown: 4, currentCooldown: 0, unlocked: true, cost: 0, type: 'damage' },
-        };
-        this._playerBuffs = {};
+        this._arenaDefeatShown = false;
+        this._arenaVictoryShown = false;
+        this._currentArenaOpponents = null;
+        this._currentArenaOpponentIndex = 0;
     },
 
-    getSkills: function() {
-        return this._skills;
-    },
-
-    unlockSkill: function(id) {
-        if (!this._skills[id]) return { success: false, reason: 'Скилл не найден' };
-        if (this._skills[id].unlocked) return { success: false, reason: 'Уже открыт' };
-
-        var p = Sherwood.getPlayer();
-        if ((p.resources.gold || 0) < this._skills[id].cost) {
-            return { success: false, reason: 'Нужно ' + this._skills[id].cost + ' золота' };
+    _showBattleScreen: function(enemyData, mode, modeTitle, extraInfo, onAttack, onFlee, customBg) {
+        if (Sherwood.Dungeon2D5 && Sherwood.Dungeon2D5._topPanel) {
+            Sherwood.Dungeon2D5._topPanel.style.display = 'none';
         }
-
-        p.resources.gold -= this._skills[id].cost;
-        this._skills[id].unlocked = true;
-        Sherwood.saveGame();
-        return { success: true };
+        var e = enemyData, p = Sherwood.getPlayer();
+        var ehp = e.maxHp > 0 ? Math.round((e.hp / e.maxHp) * 100) : 100;
+        var php = p.stats.maxHp > 0 ? Math.round((p.stats.hp / p.stats.maxHp) * 100) : 100;
+        var imgPath = (mode === 'arena') ? e.image : (mode === 'portal' ? 'assets/portal_beasts/' + e.image : 'assets/all_beasts/' + e.image);
+        var h = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-start;height:100%;padding:4px 8px;overflow:hidden;">';
+        h += '<div style="display:flex;align-items:center;gap:8px;width:100%;margin-bottom:2px;"><span style="color:#e0c080;font-size:0.8em;flex:1;text-align:center;">' + (modeTitle || '') + '</span></div>';
+        h += '<div style="color:#f44336;font-weight:bold;font-size:0.9em;text-align:center;">' + e.name + '</div>';
+        h += '<div style="display:flex;align-items:center;gap:4px;width:100%;margin-bottom:2px;"><div style="flex:1;position:relative;height:50px;"><img src="assets/interface/life_scale.png" style="width:100%;height:50px;position:absolute;top:0;left:0;z-index:0;"><div style="position:absolute;top:10px;left:28px;right:28px;bottom:10px;overflow:hidden;z-index:1;"><div id="enemy-hp-bar" style="background:url(assets/interface/filling_the_poisoned_health_bar.jpeg) left/auto 100%;height:100%;width:' + ehp + '%;"></div></div><span id="enemy-hp-text" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:0.7em;z-index:2;font-weight:bold;text-shadow:0 0 4px #000;">' + e.hp + '</span></div></div>';
+        h += '<div style="display:flex;gap:10px;justify-content:center;margin-bottom:2px;"><span style="color:#fff;font-size:0.75em;font-weight:bold;">АТК ' + (e.attack || 0) + '</span><span style="color:#fff;font-size:0.75em;font-weight:bold;">ЗЩТ ' + (e.defense || 0) + '</span><span style="color:#fff;font-size:0.75em;font-weight:bold;">HP ' + e.hp + '</span></div>';
+        h += '<div style="position:relative;display:inline-block;" id="enemy-card-area"><img src="' + imgPath + '" id="enemy-card" style="width:400px;height:400px;object-fit:contain;position:relative;z-index:1;" onerror="this.style.display=&quot;none&quot;"><div id="enemy-hit-overlay" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:2;pointer-events:none;display:none;"></div><div id="damage-numbers" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:3;pointer-events:none;"></div></div>';
+        
+        if (mode === 'arena') {
+            h += '<button id="arena-switch-btn" onclick="Sherwood.CombatUI._arenaSwitchTarget()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);width:40px;height:40px;background:transparent;border:none;cursor:pointer;z-index:20;"><img src="assets/interface/arrow_arena.png" style="width:100%;height:100%;object-fit:contain;"></button>';
+        }
+        
+        var chargedSkillLeft = null, chargedSkillRight = null;
+        if (Sherwood.Combat && Sherwood.Combat._battle) { var battle = Sherwood.Combat._battle; if (battle.chargedSkills && battle.chargedSkills.length > 0) { chargedSkillLeft = battle.chargedSkills[0] || null; chargedSkillRight = battle.chargedSkills[1] || null; } }
+        var skills = Sherwood.Combat ? Sherwood.Combat.getSkills() : {};
+        
+        h += '<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin:2px 0;">';
+        h += chargedSkillLeft && skills[chargedSkillLeft] ? '<button onclick="Sherwood.CombatUI._useSkill(\'' + chargedSkillLeft + '\')" style="width:44px;height:44px;border-radius:50%;border:2px solid #ffd700;overflow:hidden;padding:0;background:rgba(201,168,76,0.3);"><img src="' + skills[chargedSkillLeft].icon + '" style="width:100%;height:100%;object-fit:contain;"></button>' : '<div style="width:44px;height:44px;"></div>';
+        h += '<button onclick="' + onAttack + '" style="background:url(assets/skills/skill_shot_normal.png) center/contain no-repeat;width:56px;height:56px;border:3px solid #c9a040;border-radius:50%;cursor:pointer;flex-shrink:0;position:relative;overflow:hidden;">';
+        h += '<div id="attack-cooldown-overlay" style="position:absolute;top:0;left:0;width:100%;height:0%;background:rgba(0,0,0,0.6);border-radius:0 0 50% 50%;pointer-events:none;"></div>';
+        h += '</button>';
+        h += chargedSkillRight && skills[chargedSkillRight] ? '<button onclick="Sherwood.CombatUI._useSkill(\'' + chargedSkillRight + '\')" style="width:44px;height:44px;border-radius:50%;border:2px solid #ffd700;overflow:hidden;padding:0;background:rgba(201,168,76,0.3);"><img src="' + skills[chargedSkillRight].icon + '" style="width:100%;height:100%;object-fit:contain;"></button>' : '<div style="width:44px;height:44px;"></div>';
+        h += '</div>';
+        
+        h += '<div style="display:flex;align-items:center;gap:4px;width:100%;margin-bottom:2px;"><div style="flex:1;position:relative;height:50px;"><img src="assets/interface/life_scale.png" style="width:100%;height:50px;position:absolute;top:0;left:0;z-index:0;"><div style="position:absolute;top:10px;left:28px;right:28px;bottom:10px;overflow:hidden;z-index:1;"><div id="player-hp-bar" style="background:url(assets/interface/life_interface_asset_horizontal_progress_bar.jpeg) left/auto 100%;height:100%;width:' + php + '%;"></div></div><span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:0.7em;z-index:2;font-weight:bold;text-shadow:0 0 4px #000;">' + p.stats.hp + '</span></div></div>';
+        h += '<div style="display:flex;gap:10px;justify-content:center;"><span style="color:#fff;font-size:0.75em;font-weight:bold;">АТК ' + p.stats.attack + '</span><span style="color:#fff;font-size:0.75em;font-weight:bold;">ЗЩТ ' + p.stats.defense + '</span><span style="color:#fff;font-size:0.75em;font-weight:bold;">HP ' + p.stats.hp + '</span></div>';
+        h += '<div id="battle-dialog" style="width:90%;background:rgba(0,0,0,0.75);border:1px solid #555;border-radius:8px;padding:4px;margin-top:2px;min-height:32px;color:#aaa;font-size:0.65em;text-align:left;overflow:hidden;"></div>';
+        h += '</div>';
+        SherwoodUI._openScreen('', customBg || 'dungeon_fight', h);
     },
 
-    start: function(monsterId, isBoss, mode, monsterStats) {
+    _useSkill: function(skillId) {
+        if (!Sherwood.Combat) return;
+        SherwoodUI._playHitSounds();
+        var r = Sherwood.Combat.useSkill(skillId);
+        if (!r) return;
+        if (r.error) { this._showDialog(r.error, '#ff9800'); return; }
+        this._handleCombat(r);
+    },
+
+    _showDialog: function(msg, color) {
+        var dlg = document.getElementById('battle-dialog');
+        if (dlg) { dlg.innerHTML += '<div style="color:' + (color||'#fff') + ';margin:1px 0;">' + msg + '</div>'; dlg.scrollTop = dlg.scrollHeight; }
+    },
+
+    _showDamageNumber: function(dmg, isCrit) {
+        var container = document.getElementById('damage-numbers');
+        if (!container) return;
+        var el = document.createElement('div');
+        el.style.cssText = 'position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);color:' + (isCrit ? '#ff6a00' : '#ffd700') + ';font-size:' + (isCrit ? '1.8em' : '1.2em') + ';font-weight:bold;text-shadow:0 0 8px #000;z-index:10;pointer-events:none;animation:dmgFloat 1s ease-out forwards;';
+        el.textContent = (isCrit ? '💥 ' : '') + dmg;
+        container.appendChild(el);
+        setTimeout(function() { el.remove(); }, 1000);
+    },
+
+    _hitEnemyCard: function() {
+        var card = document.getElementById('enemy-card');
+        if (!card) return;
+        card.style.transition = 'transform 0.1s, filter 0.15s';
+        card.style.transform = 'translateX(2px) rotate(0.5deg) scale(0.95)';
+        card.style.filter = 'brightness(1.3) saturate(2) hue-rotate(-10deg)';
+        setTimeout(function() { card.style.transform = ''; card.style.filter = ''; }, 200);
+    },
+
+    _updateEnemyHP: function(hp, max) {
+        var bar = document.getElementById('enemy-hp-bar'), txt = document.getElementById('enemy-hp-text');
+        if (bar) { var pct = max > 0 ? Math.round((hp / max) * 100) : 0; bar.style.width = pct + '%'; }
+        if (txt) txt.textContent = hp;
         var p = Sherwood.getPlayer();
-        if (!p) return;
+        if (p) { var playerBar = document.getElementById('player-hp-bar'); if (playerBar) { var php = p.stats.maxHp > 0 ? Math.round((p.stats.hp / p.stats.maxHp) * 100) : 0; playerBar.style.width = php + '%'; } }
+    },
 
-        var enemyName = 'Монстр';
-        var enemyImage = monsterId || 'plague_crow.png';
-
-        if (Sherwood.Bestiary && Sherwood.Bestiary.BEASTS) {
-            var beastData = Sherwood.Bestiary.BEASTS[monsterId];
-            if (beastData && beastData.name) {
-                enemyName = beastData.name;
+    _showCombatScreen: function() {
+        var b = Sherwood.Combat.getState();
+        if (!b) {
+            if (Sherwood.Dungeon2D5 && Sherwood.Dungeon2D5._topPanel) {
+                Sherwood.Dungeon2D5._topPanel.style.display = 'flex';
             }
-        }
-
-        var baseHp, baseAtk, baseDef;
-
-        if (monsterStats && monsterStats.atk && monsterStats.def && monsterStats.hp) {
-            baseAtk = monsterStats.atk;
-            baseDef = monsterStats.def;
-            baseHp = monsterStats.hp;
-        } else {
-            var playerLevel = p.level || 1;
-            baseHp = Math.floor(100 + playerLevel * 20);
-            baseAtk = Math.floor(10 + playerLevel * 3);
-            baseDef = Math.floor(8 + playerLevel * 2);
-        }
-
-        if (isBoss) {
-            baseHp = Math.floor(baseHp * 3);
-            baseAtk = Math.floor(baseAtk * 1.5);
-            baseDef = Math.floor(baseDef * 1.2);
-            enemyName = 'БОСС: ' + enemyName;
-        }
-
-        var enemy = {
-            name: enemyName,
-            image: enemyImage,
-            hp: baseHp,
-            maxHp: baseHp,
-            attack: baseAtk,
-            defense: baseDef,
-            isBoss: isBoss || false,
-            mode: mode || 'dungeon',
-            dots: [],
-            stunned: 0,
-            silenced: 0,
-            defenseReduced: { percent: 0, remainingTurns: 0 },
-            damageReduced: { percent: 0, remainingTurns: 0 },
-            rooted: { remainingTurns: 0 }
-        };
-
-        this._battle = {
-            enemy: enemy,
-            playerHp: p.stats.hp,
-            playerMaxHp: p.stats.maxHp,
-            turn: 0
-        };
-
-        for (var id in this._skills) {
-            this._skills[id].currentCooldown = 0;
-        }
-
-        this._playerBuffs = {
-            parry: { remainingTurns: 0 },
-            riot: { remainingTurns: 0 },
-            inspiration: { remainingTurns: 0 }
-        };
-
-        return this._battle;
-    },
-
-    getState: function() {
-        if (!this._battle) return null;
-
-        return {
-            enemyName: this._battle.enemy.name,
-            enemyImage: this._battle.enemy.image,
-            enemyHp: this._battle.enemy.hp,
-            enemyMaxHp: this._battle.enemy.maxHp,
-            enemyAttack: this._battle.enemy.attack,
-            enemyDefense: this._battle.enemy.defense,
-            isBoss: this._battle.enemy.isBoss
-        };
-    },
-
-    _tickCooldowns: function() {
-        for (var id in this._skills) {
-            if (this._skills[id].currentCooldown > 0) {
-                this._skills[id].currentCooldown--;
+            if (Sherwood.Dungeon2D5 && Sherwood.Dungeon2D5._dungeon) {
+                Sherwood.Dungeon2D5.render();
+            } else {
+                SherwoodUI._renderDungeon();
             }
+            return;
         }
+        if (Sherwood.Dungeon2D5 && Sherwood.Dungeon2D5._topPanel) {
+            Sherwood.Dungeon2D5._topPanel.style.display = 'none';
+        }
+        this._showBattleScreen({ name: b.enemyName, image: b.enemyImage, hp: b.enemyHp, maxHp: b.enemyMaxHp, attack: b.enemyAttack, defense: b.enemyDefense }, "dungeon", (b.isBoss ? "БОСС: " : "") + b.enemyName, "", "SherwoodUI._combatAttack()", "SherwoodUI._combatFlee");
     },
 
-    _calculateDamage: function(attack, defense) {
-        var damage = Math.max(1, Math.floor(attack * 0.15 + (attack - defense) * 0.25));
-        var spread = Math.floor(Math.random() * 5);
-        damage += spread;
-        return damage;
+    _combatAttack: function() {
+        SherwoodUI._playHitSounds();
+        this._handleCombat(Sherwood.Combat.attack());
     },
 
-    attack: function() {
-        if (!this._battle) return { error: 'Нет боя' };
-
-        var b = this._battle;
-        var p = Sherwood.getPlayer();
-
-        this._tickCooldowns();
-
-        var rawDamage = this._calculateDamage(p.stats.attack, b.enemy.defense);
-
-        var critChance = 0.15;
-        if (this._playerBuffs.riot && this._playerBuffs.riot.remainingTurns > 0) {
-            critChance += 0.3;
-        }
-
-        var crit = Math.random() < critChance;
-        if (crit) rawDamage = Math.floor(rawDamage * 1.8);
-
-        b.enemy.hp -= rawDamage;
-        if (b.enemy.hp < 0) b.enemy.hp = 0;
-
-        var result = {
-            damage: rawDamage,
-            crit: crit,
-            enemyHp: b.enemy.hp,
-            enemyMaxHp: b.enemy.maxHp,
-            enemyDead: b.enemy.hp <= 0,
-            enemyImage: b.enemy.image
-        };
-
-        if (b.enemy.hp <= 0) {
-            result.win = true;
-            var expBonus = (this._playerBuffs.inspiration && this._playerBuffs.inspiration.remainingTurns > 0) ? 1.5 : 1;
-            result.exp = Math.floor(b.enemy.maxHp * 0.3 * expBonus);
-            result.gold = Math.floor(b.enemy.maxHp * 0.1);
-            this._battle = null;
-            return result;
-        }
-
-        var enemyResult = this._enemyTurn();
-
-        if (enemyResult.playerDead) {
-            result.playerDead = true;
-            result.exp = Math.floor(b.enemy.maxHp * 0.1);
-            result.gold = 0;
-            this._battle = null;
-            return result;
-        }
-
-        p.stats.hp = b.playerHp;
-        result.playerHp = b.playerHp;
-        result.enemyDamage = enemyResult.enemyDamage;
-
-        this._tickBuffs();
-
-        Sherwood.saveGame();
-        return result;
-    },
-
-    useSkill: function(skillId) {
-        if (!this._battle) return { error: 'Нет боя' };
-
-        var skill = this._skills[skillId];
-        if (!skill) return { error: 'Скилл не найден' };
-        if (!skill.unlocked) return { error: 'Скилл не открыт' };
-        if (skill.currentCooldown > 0) return { error: 'Перезарядка: ' + skill.currentCooldown };
-
-        var b = this._battle;
-        var p = Sherwood.getPlayer();
-
-        this._tickCooldowns();
-        skill.currentCooldown = skill.cooldown;
-
-        var result = {
-            skillName: skill.name,
-            damage: 0,
-            heal: 0,
-            enemyHp: b.enemy.hp,
-            enemyMaxHp: b.enemy.maxHp,
-            enemyDead: false,
-            enemyImage: b.enemy.image,
-            effects: []
-        };
-
-        switch (skill.type) {
-            case 'heal':
-                var healAmount = Math.floor(p.stats.maxHp * skill.healPercent);
-                p.stats.hp = Math.min(p.stats.maxHp, p.stats.hp + healAmount);
-                b.playerHp = p.stats.hp;
-                result.heal = healAmount;
-                result.effects.push('+ ' + healAmount + ' HP');
-                break;
-
-            case 'defense':
-                if (skill.parry) {
-                    this._playerBuffs.parry.remainingTurns = 1;
-                    result.effects.push('Парирование активно');
-                }
-                break;
-
-            case 'buff':
-                if (skill.critChanceBonus) {
-                    this._playerBuffs.riot.remainingTurns = 2;
-                    result.effects.push('Шанс крита +30% на 2 хода');
-                }
-                if (skill.expBoost) {
-                    this._playerBuffs.inspiration.remainingTurns = 2;
-                    result.effects.push('Опыт +50% на 2 хода');
-                }
-                break;
-
-            case 'debuff':
-                if (skill.enemyDamageReduction) {
-                    b.enemy.damageReduced.percent = skill.enemyDamageReduction;
-                    b.enemy.damageReduced.remainingTurns = skill.duration;
-                    result.effects.push('Урон врага снижен на 30%');
-                }
-                if (skill.silenceDuration) {
-                    b.enemy.silenced = skill.silenceDuration;
-                    result.effects.push('Враг блокирован на ' + skill.silenceDuration + ' ход');
-                }
-                if (skill.defenseReduction) {
-                    b.enemy.defenseReduced.percent = skill.defenseReduction;
-                    b.enemy.defenseReduced.remainingTurns = skill.duration;
-                    result.effects.push('Защита врага снижена');
-                }
-                if (skill.rootDuration) {
-                    b.enemy.rooted.remainingTurns = skill.rootDuration;
-                    result.effects.push('Враг скован на ' + skill.rootDuration + ' хода');
-                }
-                if (skill.stunDuration) {
-                    b.enemy.stunned = skill.stunDuration;
-                    result.effects.push('Враг оглушён');
-                }
-                break;
-
-            default:
-                var totalDamage = 0;
-                var hits = skill.hits || 1;
-                var effectiveDefense = b.enemy.defense;
-
-                if (skill.armorPierce) {
-                    effectiveDefense = Math.floor(effectiveDefense * (1 - skill.armorPierce));
-                }
-
-                if (b.enemy.defenseReduced.remainingTurns > 0) {
-                    effectiveDefense = Math.floor(effectiveDefense * (1 - b.enemy.defenseReduced.percent));
-                }
-
-                for (var h = 0; h < hits; h++) {
-                    var hitDamage = this._calculateDamage(p.stats.attack * skill.damageMultiplier, effectiveDefense);
-                    totalDamage += hitDamage;
-                    b.enemy.hp -= hitDamage;
-                    if (b.enemy.hp < 0) b.enemy.hp = 0;
-                    if (b.enemy.hp <= 0) break;
-                }
-
-                result.damage = totalDamage;
-                result.hits = hits;
-
-                if (skill.dotDamage && skill.dotDuration && b.enemy.hp > 0) {
-                    b.enemy.dots.push({ damagePerTurn: skill.dotDamage, remainingTurns: skill.dotDuration });
-                    result.effects.push('Отравление на ' + skill.dotDuration + ' хода');
-                }
-
-                if (skill.lifesteal && totalDamage > 0) {
-                    var lsAmount = Math.floor(totalDamage * skill.lifesteal);
-                    p.stats.hp = Math.min(p.stats.maxHp, p.stats.hp + lsAmount);
-                    b.playerHp = p.stats.hp;
-                    result.heal = lsAmount;
-                    result.effects.push('+ ' + lsAmount + ' HP');
-                }
-                break;
-        }
-
-        result.enemyHp = b.enemy.hp;
-        result.enemyMaxHp = b.enemy.maxHp;
-
-        if (b.enemy.hp <= 0) {
-            result.enemyDead = true;
-            result.win = true;
-            var expBonus2 = (this._playerBuffs.inspiration && this._playerBuffs.inspiration.remainingTurns > 0) ? 1.5 : 1;
-            result.exp = Math.floor(b.enemy.maxHp * 0.3 * expBonus2);
-            result.gold = Math.floor(b.enemy.maxHp * 0.1);
-            this._battle = null;
-            return result;
-        }
-
-        if (b.enemy.stunned > 0) {
-            b.enemy.stunned--;
-            result.enemyStunned = true;
-        } else {
-            var enemyResult = this._enemyTurn();
-
-            if (enemyResult.playerDead) {
-                result.playerDead = true;
-                this._battle = null;
-                return result;
+    _combatFlee: function() {
+        var r = Sherwood.Combat.flee();
+        if (r.success) {
+            SherwoodUI._resumeMusic();
+            if (Sherwood.Dungeon2D5 && Sherwood.Dungeon2D5._dungeon) {
+                Sherwood.Dungeon2D5.render();
+            } else {
+                SherwoodUI._leaveDungeon();
             }
-
-            result.enemyDamage = enemyResult.enemyDamage;
+            return;
         }
-
-        this._tickBuffs();
-
-        p.stats.hp = b.playerHp;
-        result.playerHp = b.playerHp;
-
-        Sherwood.saveGame();
-        return result;
+        if (r.lose) {
+            this._showDialog('Поражение...', '#f44336');
+            SherwoodUI._resumeMusic();
+            var self = this;
+            setTimeout(function() {
+                if (Sherwood.Dungeon2D5 && Sherwood.Dungeon2D5._dungeon) {
+                    Sherwood.Dungeon2D5.render();
+                } else {
+                    self._leaveDungeon();
+                }
+            }, 1200);
+            return;
+        }
+        this._showDialog('Побег не удался! Враг: -' + r.damage, '#ff9800');
+        this._showCombatScreen();
     },
 
-    _enemyTurn: function() {
-        if (!this._battle) return { playerDead: false };
-
-        var b = this._battle;
-        var p = Sherwood.getPlayer();
-
-        if (this._playerBuffs.parry && this._playerBuffs.parry.remainingTurns > 0) {
-            return { playerDead: false, enemyDamage: 0, parried: true };
-        }
-
-        var attackValue = b.enemy.attack;
-
-        if (b.enemy.damageReduced.remainingTurns > 0) {
-            attackValue = Math.floor(attackValue * (1 - b.enemy.damageReduced.percent));
-        }
-
-        if (b.enemy.silenced > 0) {
-            attackValue = Math.floor(attackValue * 0.5);
-        }
-
-        if (b.enemy.rooted.remainingTurns > 0) {
-            attackValue = Math.floor(attackValue * 0.7);
-        }
-
-        var defenseValue = p.stats.defense;
-        var enemyDamage = this._calculateDamage(attackValue, defenseValue);
-
-        var blockSkill = this._skills.blocking;
-        if (blockSkill && blockSkill.unlocked && blockSkill.blockChance) {
-            if (Math.random() < blockSkill.blockChance) {
-                enemyDamage = 0;
-            }
-        }
-
-        b.playerHp -= enemyDamage;
-        if (b.playerHp < 0) b.playerHp = 0;
-        p.stats.hp = b.playerHp;
-
-        return {
-            playerDead: b.playerHp <= 0,
-            enemyDamage: enemyDamage,
-            playerHp: b.playerHp
-        };
-    },
-
-    _tickBuffs: function() {
-        if (this._playerBuffs.parry && this._playerBuffs.parry.remainingTurns > 0) {
-            this._playerBuffs.parry.remainingTurns--;
-        }
-        if (this._playerBuffs.riot && this._playerBuffs.riot.remainingTurns > 0) {
-            this._playerBuffs.riot.remainingTurns--;
-        }
-        if (this._playerBuffs.inspiration && this._playerBuffs.inspiration.remainingTurns > 0) {
-            this._playerBuffs.inspiration.remainingTurns--;
-        }
-
-        if (this._battle && this._battle.enemy) {
-            var e = this._battle.enemy;
-            if (e.damageReduced.remainingTurns > 0) e.damageReduced.remainingTurns--;
-            if (e.defenseReduced.remainingTurns > 0) e.defenseReduced.remainingTurns--;
-            if (e.rooted.remainingTurns > 0) e.rooted.remainingTurns--;
-            if (e.silenced > 0) e.silenced--;
-        }
-    },
-
-    flee: function() {
-        if (!this._battle) return { success: true };
-
-        var b = this._battle;
-        var p = Sherwood.getPlayer();
-
-        if (Math.random() < 0.6) {
-            this._battle = null;
+    _handleCombat: function(r) {
+        if (!r) return;
+        if (r.win) {
+            if (r.exp) Sherwood.addExp(r.exp);
+            if (r.gold) { Sherwood.addResource('gold', r.gold); Sherwood.addResource('silver', Math.floor(r.gold * 2)); }
             Sherwood.saveGame();
-            return { success: true };
+            if (Sherwood.Daily) { Sherwood.Daily.updateProgress('kill_beasts', 1); Sherwood.Daily.updateProgress('collect_loot', 1); }
+            if (Sherwood.Dungeon && Sherwood.Dungeon.killMonster) Sherwood.Dungeon.killMonster();
+            if (Sherwood.Bestiary && r.enemyImage) Sherwood.Bestiary.registerKill(r.enemyImage);
+            SherwoodUI._resumeMusic();
+            SherwoodUI.updateDisplay();
+            if (Sherwood.Dungeon2D5 && Sherwood.Dungeon2D5._dungeon) {
+                Sherwood.Dungeon2D5.render();
+            } else {
+                var d = Sherwood.Dungeon.getDungeon();
+                if (d) { d.px = d.prevPx || d.px; d.py = d.prevPy || d.py; }
+                SherwoodUI._renderDungeon();
+            }
         }
-
-        var enemyDamage = Math.max(1, Math.floor(b.enemy.attack - p.stats.defense * 0.3));
-        p.stats.hp = Math.max(0, p.stats.hp - enemyDamage);
-        b.playerHp = p.stats.hp;
-
-        if (p.stats.hp <= 0) {
-            this._battle = null;
-            Sherwood.saveGame();
-            return { lose: true, damage: enemyDamage };
+        else if (r.lose) {
+            SherwoodUI._resumeMusic();
+            SherwoodUI.updateDisplay();
+            var scrolls = Math.random() < 0.08 ? 1 : 0;
+            if (scrolls) Sherwood.addResource('scrolls', scrolls);
+            SherwoodUI._pendingRewards = { exp: Math.floor(r.exp * 0.3), silver: Math.floor(r.gold * 1.5), scrolls: scrolls };
+            SherwoodUI._afterRewardAction = function() {
+                if (Sherwood.Dungeon2D5 && Sherwood.Dungeon2D5._dungeon) {
+                    Sherwood.Dungeon2D5.render();
+                } else {
+                    SherwoodUI._leaveDungeon();
+                }
+            };
+            SherwoodUI._showDefeatScreen(SherwoodUI._pendingRewards);
         }
-
-        Sherwood.saveGame();
-        return { success: false, damage: enemyDamage };
+        else {
+            this._hitEnemyCard();
+            this._showDamageNumber(r.damage, r.crit);
+            this._updateEnemyHP(r.enemyHp, r.enemyMaxHp);
+            this._showDialog((r.crit ? 'CRIT ' : '') + 'Damage: ' + r.damage, r.crit ? '#ff6a00' : '#fff');
+            SherwoodUI.updateDisplay();
+            var self = this;
+            setTimeout(function() { self._showCombatScreen(); }, 1000);
+        }
     },
 
-    isInBattle: function() {
-        return this._battle !== null;
+    _arenaSwitchTarget: function() {
+        if (!this._currentArenaOpponents || !Sherwood.Arena.isInMatch()) return;
+        var aliveBots = this._currentArenaOpponents.filter(function(o) { return o.stats.hp > 0; });
+        if (aliveBots.length <= 1) return;
+        var currentIdx = this._currentArenaOpponentIndex;
+        var nextIdx = currentIdx;
+        for (var i = 1; i <= this._currentArenaOpponents.length; i++) {
+            var checkIdx = (currentIdx + i) % this._currentArenaOpponents.length;
+            if (this._currentArenaOpponents[checkIdx].stats.hp > 0) { nextIdx = checkIdx; break; }
+        }
+        if (nextIdx !== currentIdx) {
+            this._currentArenaOpponentIndex = nextIdx;
+            Sherwood.Arena._currentOpponent = this._currentArenaOpponents[nextIdx];
+            this._showArenaBattle();
+            this._showDialog('Цель переключена', '#ff9800');
+        }
     }
 };
+
+Sherwood.CombatUI.init();
