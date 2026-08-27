@@ -20,14 +20,61 @@ hero.addEventListener('click', () => {
     
     AudioManager.playCityTheme();
     
-    if (Textures.loaded) {
+    showLoadingOverlay();
+    
+    const startMenu = () => {
+        hideLoadingOverlay();
         Menu.init();
+    };
+    
+    if (Textures.loaded) {
+        startMenu();
     } else {
-        Textures.load(() => {
-            Menu.init();
-        });
+        Textures.load(startMenu);
     }
 });
+
+function showLoadingOverlay() {
+    const overlay = document.createElement('div');
+    overlay.id = 'loading-overlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1000;
+        background: url('assets/backgrounds/loading_screen_with_logo.png') center/cover no-repeat;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    `;
+    
+    const spinner = document.createElement('div');
+    spinner.style.cssText = `
+        width: 60px;
+        height: 60px;
+        border: 4px solid #c9a040;
+        border-top: 4px solid transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    `;
+    
+    overlay.appendChild(spinner);
+    document.body.appendChild(overlay);
+    
+    if (!document.getElementById('spin-keyframes')) {
+        const style = document.createElement('style');
+        style.id = 'spin-keyframes';
+        style.textContent = '@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }';
+        document.head.appendChild(style);
+    }
+}
+
+function hideLoadingOverlay() {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) overlay.remove();
+}
 
 function showHomeScreen() {
     Menu.destroy();
@@ -97,21 +144,21 @@ function showDungeonScreen() {
             <button onclick="closeDungeonScreen()" style="background:transparent;border:none;cursor:pointer;padding:0;width:60px;height:60px;">
                 <img src="assets/icons/back.png" style="width:100%;height:100%;object-fit:contain;">
             </button>
-            <span style="color:#e0c080;font-size:1.2em;text-shadow:0 0 10px #000;">Подземелья</span>
+            <span style="color:#e0c080;font-size:1.2em;">Подземелья</span>
         </div>
-        <div style="flex:1;overflow-y:auto;overflow-x:hidden;padding:20px;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;">
+        <div style="flex:1;overflow-y:auto;padding:20px;scrollbar-width:none;">
             <div style="display:flex;flex-direction:column;align-items:center;gap:30px;padding-bottom:40px;">
                 <div onclick="enterDungeon('forest')" style="text-align:center;cursor:pointer;">
-                    <img src="assets/icons/the_cursed_thicket.png" style="width:180px;height:180px;object-fit:contain;display:block;margin:0 auto;">
-                    <div style="color:#e0c080;font-size:1.1em;font-weight:bold;margin-top:8px;text-shadow:0 0 10px #000;">Проклятая чаща</div>
+                    <img src="assets/icons/the_cursed_thicket.png" style="width:180px;height:180px;object-fit:contain;">
+                    <div style="color:#e0c080;font-size:1.1em;font-weight:bold;margin-top:8px;">Проклятая чаща</div>
                 </div>
                 <div onclick="enterDungeon('swamp')" style="text-align:center;cursor:pointer;">
-                    <img src="assets/icons/primordial_swamp.png" style="width:180px;height:180px;object-fit:contain;display:block;margin:0 auto;">
-                    <div style="color:#e0c080;font-size:1.1em;font-weight:bold;margin-top:8px;text-shadow:0 0 10px #000;">Первородное болото</div>
+                    <img src="assets/icons/primordial_swamp.png" style="width:180px;height:180px;object-fit:contain;">
+                    <div style="color:#e0c080;font-size:1.1em;font-weight:bold;margin-top:8px;">Первородное болото</div>
                 </div>
                 <div onclick="enterDungeon('cave')" style="text-align:center;cursor:pointer;">
-                    <img src="assets/icons/basalt_grotto.png" style="width:180px;height:180px;object-fit:contain;display:block;margin:0 auto;">
-                    <div style="color:#e0c080;font-size:1.1em;font-weight:bold;margin-top:8px;text-shadow:0 0 10px #000;">Базальтовый грот</div>
+                    <img src="assets/icons/basalt_grotto.png" style="width:180px;height:180px;object-fit:contain;">
+                    <div style="color:#e0c080;font-size:1.1em;font-weight:bold;margin-top:8px;">Базальтовый грот</div>
                 </div>
             </div>
         </div>
@@ -199,7 +246,7 @@ function renderTavernQuests() {
         
         if (!ready) {
             const mins = Math.ceil(remaining / 60);
-            html += `<div style="color:#ff9800;font-weight:bold;">⏳ Осталось: ${mins} мин.</div>`;
+            html += `<div style="color:#ff9800;font-weight:bold;">Осталось: ${mins} мин.</div>`;
         } else {
             html += `<button onclick="claimTavernContract()" style="background:#4caf50;border:none;border-radius:8px;padding:12px;color:#fff;font-weight:bold;cursor:pointer;width:100%;margin-bottom:10px;">Забрать награду</button>`;
             html += `<button onclick="attackTavernQuest()" style="background:#f44336;border:none;border-radius:8px;padding:12px;color:#fff;font-weight:bold;cursor:pointer;width:100%;">Атаковать</button>`;
@@ -215,35 +262,22 @@ function renderTavernQuests() {
 
 function startTavernQuest() {
     const result = Sherwood.Tavern.startQuest();
-    if (result.success) {
-        renderTavernQuests();
-    } else {
-        alert(result.reason);
-    }
+    if (result.success) renderTavernQuests();
+    else alert(result.reason);
 }
 
 function claimTavernContract() {
     const result = Sherwood.Tavern.claimContractReward();
-    if (result.success && result.mode === 'battle') {
-        attackTavernQuest();
-    } else if (result.success) {
-        renderTavernQuests();
-    } else {
-        alert(result.reason);
-    }
+    if (result.success && result.mode === 'battle') attackTavernQuest();
+    else if (result.success) renderTavernQuests();
+    else alert(result.reason);
 }
 
 function attackTavernQuest() {
     const result = Sherwood.Tavern.attackQuest();
-    if (result.win) {
-        alert('Победа!');
-        renderTavernQuests();
-    } else if (result.lose) {
-        alert('Поражение...');
-        renderTavernQuests();
-    } else {
-        renderTavernQuests();
-    }
+    if (result.win) { alert('Победа!'); renderTavernQuests(); }
+    else if (result.lose) { alert('Поражение...'); renderTavernQuests(); }
+    else renderTavernQuests();
 }
 
 function renderTavernTalents() {
@@ -264,9 +298,9 @@ function renderTavernTalents() {
             <div style="color:#ccc;font-size:0.9em;margin-bottom:10px;">${talent.desc}</div>
             ${isLearned ? `<div style="color:#aaa;font-size:0.8em;margin-bottom:10px;">Уровень: ${level}/${talent.maxLevel}</div>` : ''}
             ${!isLearned ? 
-                `<button onclick="learnTalent('${talent.id}')" style="background:#4caf50;border:none;border-radius:8px;padding:15px 40px;color:#fff;font-weight:bold;cursor:pointer;font-size:1em;">Изучить — ${cost} золота</button>` :
+                `<button onclick="learnTalent('${talent.id}')" style="background:#4caf50;border:none;border-radius:8px;padding:15px 40px;color:#fff;font-weight:bold;cursor:pointer;">Изучить — ${cost} золота</button>` :
                 level < talent.maxLevel ? 
-                `<button onclick="upgradeTalent('${talent.id}')" style="background:#ff9800;border:none;border-radius:8px;padding:15px 40px;color:#fff;font-weight:bold;cursor:pointer;font-size:1em;">Улучшить — ${cost} золота</button>` :
+                `<button onclick="upgradeTalent('${talent.id}')" style="background:#ff9800;border:none;border-radius:8px;padding:15px 40px;color:#fff;font-weight:bold;cursor:pointer;">Улучшить — ${cost} золота</button>` :
                 `<div style="color:#4caf50;font-weight:bold;font-size:1.2em;">МАКСИМУМ</div>`
             }
         </div>`;
@@ -309,7 +343,7 @@ function showLearnedTalentsScreen() {
             <div style="color:#ffd700;font-weight:bold;font-size:1.2em;margin-bottom:5px;">${talent.name}</div>
             <div style="color:#ccc;font-size:0.9em;margin-bottom:10px;">${talent.desc}</div>
             <div style="color:#aaa;font-size:0.8em;margin-bottom:15px;">Уровень: ${level}/${talent.maxLevel}</div>
-            <button onclick="toggleTalent('${talent.id}')" style="background:${enabled ? '#4caf50' : '#f44336'};border:none;border-radius:8px;padding:15px 40px;color:#fff;font-weight:bold;cursor:pointer;font-size:1em;">${enabled ? 'Выключить' : 'Включить'}</button>
+            <button onclick="toggleTalent('${talent.id}')" style="background:${enabled ? '#4caf50' : '#f44336'};border:none;border-radius:8px;padding:15px 40px;color:#fff;font-weight:bold;cursor:pointer;">${enabled ? 'Выключить' : 'Включить'}</button>
         </div>`;
     }
     
