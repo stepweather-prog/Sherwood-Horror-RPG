@@ -15,6 +15,10 @@ const AudioManager = {
     },
     
     playCityTheme() {
+        if (typeof Settings !== 'undefined' && !Settings.isMusicEnabled()) {
+            return;
+        }
+        
         this.stopCityTheme();
         
         const trackSrc = this.cityTracks[this.currentTrackIndex];
@@ -23,7 +27,6 @@ const AudioManager = {
         this.currentMusic.volume = 0.5;
         this.currentMusic.play().catch(() => {});
         
-        // Переключаем на следующий трек для следующего входа
         this.currentTrackIndex = (this.currentTrackIndex + 1) % this.cityTracks.length;
     },
     
