@@ -1,4 +1,4 @@
-// js/menu.js
+// js/menu.js — с фиксом проскока таверны и талантов
 const Menu = {
     buildings: [
         { icon: 'Квесты', name: 'Квесты' },
@@ -38,6 +38,7 @@ const Menu = {
     stepTimer: null,
     wallOffset: 0,
     targetWallOffset: 0,
+    isAnimating: false,
     
     init() {
         this.canvas = document.getElementById('game');
@@ -82,17 +83,25 @@ const Menu = {
         this.H = window.innerHeight;
         this.canvas.width = this.W;
         this.canvas.height = this.H;
+        
+        // Пересчитываем позицию без проскока
+        this.targetWallOffset = -this.currentIndex * this.W;
+        this.wallOffset = this.targetWallOffset;
     },
     
     next() {
+        if (this.isAnimating) return;
         this.currentIndex = (this.currentIndex + 1) % this.buildings.length;
         this.targetWallOffset = -this.currentIndex * this.W;
+        this.isAnimating = true;
         this.playStepAnimation();
     },
     
     prev() {
+        if (this.isAnimating) return;
         this.currentIndex = (this.currentIndex - 1 + this.buildings.length) % this.buildings.length;
         this.targetWallOffset = -this.currentIndex * this.W;
+        this.isAnimating = true;
         this.playStepAnimation();
     },
     
@@ -104,10 +113,10 @@ const Menu = {
             clearTimeout(this.stepTimer);
             this.stepTimer = setTimeout(() => {
                 this.stepVideo.pause();
-                // Замирает на последнем кадре
                 if (this.stepVideo.duration) {
                     this.stepVideo.currentTime = this.stepVideo.duration;
                 }
+                this.isAnimating = false;
             }, 600);
         }
     },
@@ -245,24 +254,22 @@ const Menu = {
             }
         }
         
-        // Разделители — крупнее
-        const seamHeight = 80;
+        // Разделители — по 3 штуки, исходный размер
+if (typeof Textures !== 'undefined' && Textures.seamTop && Textures.seamTop.complete) {
+    const img = Textures.seamTop;
+    for (let i = 0; i < 3; i++) {
+        ctx.drawImage(img, i * img.width, wallY - img.height/2);
+    }
+}
+
+if (typeof Textures !== 'undefined' && Textures.seamBottom && Textures.seamBottom.complete) {
+    const img = Textures.seamBottom;
+    for (let i = 0; i < 3; i++) {
+        ctx.drawImage(img, i * img.width, floorY - img.height/2);
+    }
+}
         
-        if (typeof Textures !== 'undefined' && Textures.seamTop && Textures.seamTop.complete) {
-            const img = Textures.seamTop;
-            for (let i = 0; i < 3; i++) {
-                ctx.drawImage(img, i * tileWidth, wallY - seamHeight/2, tileWidth, seamHeight);
-            }
-        }
-        
-        if (typeof Textures !== 'undefined' && Textures.seamBottom && Textures.seamBottom.complete) {
-            const img = Textures.seamBottom;
-            for (let i = 0; i < 3; i++) {
-                ctx.drawImage(img, i * tileWidth, floorY - seamHeight/2, tileWidth, seamHeight);
-            }
-        }
-        
-        // Анимация — крупнее, замирает
+        // Анимация
         if (this.stepVideo && this.stepVideo.readyState >= 2) {
             const videoSize = Math.min(W * 0.35, H * 0.35);
             const videoX = W / 2 - videoSize / 2;
