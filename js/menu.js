@@ -1,4 +1,4 @@
-// js/menu.js — с фиксом проскока таверны и талантов
+// js/menu.js
 const Menu = {
     buildings: [
         { icon: 'Квесты', name: 'Квесты' },
@@ -83,8 +83,6 @@ const Menu = {
         this.H = window.innerHeight;
         this.canvas.width = this.W;
         this.canvas.height = this.H;
-        
-        // Пересчитываем позицию без проскока
         this.targetWallOffset = -this.currentIndex * this.W;
         this.wallOffset = this.targetWallOffset;
     },
@@ -182,6 +180,7 @@ const Menu = {
         const tileHeight = H - floorY;
         const tileWidth = W / 3;
         const sectionWidth = W;
+        const wallY = skyHeight;
         
         this.wallOffset += (this.targetWallOffset - this.wallOffset) * 0.08;
         
@@ -197,7 +196,7 @@ const Menu = {
             this.homeRect = { x: 20, y: 20, w: homeSize, h: homeSize };
         }
         
-        // Пол — три плиты
+        // Пол
         if (this.floorImages && this.floorImages.length === 3) {
             for (let i = 0; i < 3; i++) {
                 const img = this.floorImages[i];
@@ -207,9 +206,7 @@ const Menu = {
             }
         }
         
-        // Стена и иконки — карусель
-        const wallY = skyHeight;
-        
+        // Стена и иконки
         if (this.wallImage && this.wallImage.complete) {
             const totalWidth = this.buildings.length * sectionWidth;
             let scrollX = this.wallOffset % totalWidth;
@@ -254,20 +251,18 @@ const Menu = {
             }
         }
         
-        // Разделители — по 3 штуки, исходный размер
-if (typeof Textures !== 'undefined' && Textures.seamTop && Textures.seamTop.complete) {
-    const img = Textures.seamTop;
-    for (let i = 0; i < 3; i++) {
-        ctx.drawImage(img, i * img.width, wallY - img.height/2);
-    }
-}
-
-if (typeof Textures !== 'undefined' && Textures.seamBottom && Textures.seamBottom.complete) {
-    const img = Textures.seamBottom;
-    for (let i = 0; i < 3; i++) {
-        ctx.drawImage(img, i * img.width, floorY - img.height/2);
-    }
-}
+        // Разделители — поверх швов
+        const seamH = 60;
+        
+        if (typeof Textures !== 'undefined' && Textures.seamTop && Textures.seamTop.complete) {
+            const img = Textures.seamTop;
+            ctx.drawImage(img, 0, wallY - seamH / 2, W, seamH);
+        }
+        
+        if (typeof Textures !== 'undefined' && Textures.seamBottom && Textures.seamBottom.complete) {
+            const img = Textures.seamBottom;
+            ctx.drawImage(img, 0, floorY - seamH / 2, W, seamH);
+        }
         
         // Анимация
         if (this.stepVideo && this.stepVideo.readyState >= 2) {
