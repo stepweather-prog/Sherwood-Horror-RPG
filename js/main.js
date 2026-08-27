@@ -250,7 +250,7 @@ function renderTavernTalents() {
     const container = document.getElementById('tavern-tab-content');
     if (!container) return;
     
-    let html = '<div style="display:flex;flex-direction:column;gap:15px;padding-bottom:20px;">';
+    let html = '<div style="display:flex;flex-direction:column;gap:30px;padding:20px 0 40px;">';
     
     for (const talent of Talents.list) {
         const level = Talents.getLevel(talent.id);
@@ -258,18 +258,16 @@ function renderTavernTalents() {
         const isLearned = level > 0;
         
         html += `
-        <div style="display:flex;align-items:center;gap:10px;background:rgba(0,0,0,0.7);border:1px solid #c9a040;border-radius:8px;padding:10px;">
-            <img src="assets/talents/${talent.icon}" style="width:50px;height:50px;object-fit:contain;">
-            <div style="flex:1;">
-                <div style="color:#ffd700;font-weight:bold;">${talent.name}</div>
-                <div style="color:#ccc;font-size:0.8em;">${talent.desc}</div>
-                ${isLearned ? `<div style="color:#aaa;font-size:0.7em;">Уровень: ${level}/${talent.maxLevel}</div>` : ''}
-            </div>
+        <div style="display:flex;flex-direction:column;align-items:center;text-align:center;background:rgba(0,0,0,0.7);border:2px solid #c9a040;border-radius:12px;padding:20px;">
+            <img src="assets/talents/${talent.icon}" style="width:120px;height:120px;object-fit:contain;margin-bottom:10px;">
+            <div style="color:#ffd700;font-weight:bold;font-size:1.2em;margin-bottom:5px;">${talent.name}</div>
+            <div style="color:#ccc;font-size:0.9em;margin-bottom:10px;">${talent.desc}</div>
+            ${isLearned ? `<div style="color:#aaa;font-size:0.8em;margin-bottom:10px;">Уровень: ${level}/${talent.maxLevel}</div>` : ''}
             ${!isLearned ? 
-                `<button onclick="learnTalent('${talent.id}')" style="background:#4caf50;border:none;border-radius:5px;padding:8px;color:#fff;font-weight:bold;cursor:pointer;">Изучить ${cost} зол.</button>` :
+                `<button onclick="learnTalent('${talent.id}')" style="background:#4caf50;border:none;border-radius:8px;padding:15px 40px;color:#fff;font-weight:bold;cursor:pointer;font-size:1em;">Изучить — ${cost} золота</button>` :
                 level < talent.maxLevel ? 
-                `<button onclick="upgradeTalent('${talent.id}')" style="background:#ff9800;border:none;border-radius:5px;padding:8px;color:#fff;font-weight:bold;cursor:pointer;">Улучшить ${cost} зол.</button>` :
-                `<div style="color:#4caf50;">MAX</div>`
+                `<button onclick="upgradeTalent('${talent.id}')" style="background:#ff9800;border:none;border-radius:8px;padding:15px 40px;color:#fff;font-weight:bold;cursor:pointer;font-size:1em;">Улучшить — ${cost} золота</button>` :
+                `<div style="color:#4caf50;font-weight:bold;font-size:1.2em;">МАКСИМУМ</div>`
             }
         </div>`;
     }
@@ -297,7 +295,7 @@ function closeTavernScreen() {
 
 // ========== ЭКРАН ТАЛАНТОВ ==========
 function showLearnedTalentsScreen() {
-    let html = '<div style="display:flex;flex-direction:column;gap:15px;padding:20px;">';
+    let html = '<div style="display:flex;flex-direction:column;gap:30px;padding:20px 0 40px;">';
     
     for (const talent of Talents.list) {
         const level = Talents.getLevel(talent.id);
@@ -306,14 +304,12 @@ function showLearnedTalentsScreen() {
         const enabled = Talents.isEnabled(talent.id);
         
         html += `
-        <div style="display:flex;align-items:center;gap:10px;background:rgba(0,0,0,0.7);border:1px solid #c9a040;border-radius:8px;padding:10px;">
-            <img src="assets/talents/${talent.icon}" style="width:50px;height:50px;object-fit:contain;">
-            <div style="flex:1;">
-                <div style="color:#ffd700;font-weight:bold;">${talent.name}</div>
-                <div style="color:#ccc;font-size:0.8em;">${talent.desc}</div>
-                <div style="color:#aaa;font-size:0.7em;">Уровень: ${level}/${talent.maxLevel}</div>
-            </div>
-            <button onclick="toggleTalent('${talent.id}')" style="background:${enabled ? '#4caf50' : '#f44336'};border:none;border-radius:5px;padding:8px;color:#fff;font-weight:bold;cursor:pointer;">${enabled ? 'Выключить' : 'Включить'}</button>
+        <div style="display:flex;flex-direction:column;align-items:center;text-align:center;background:rgba(0,0,0,0.7);border:2px solid #c9a040;border-radius:12px;padding:20px;">
+            <img src="assets/talents/${talent.icon}" style="width:120px;height:120px;object-fit:contain;margin-bottom:10px;">
+            <div style="color:#ffd700;font-weight:bold;font-size:1.2em;margin-bottom:5px;">${talent.name}</div>
+            <div style="color:#ccc;font-size:0.9em;margin-bottom:10px;">${talent.desc}</div>
+            <div style="color:#aaa;font-size:0.8em;margin-bottom:15px;">Уровень: ${level}/${talent.maxLevel}</div>
+            <button onclick="toggleTalent('${talent.id}')" style="background:${enabled ? '#4caf50' : '#f44336'};border:none;border-radius:8px;padding:15px 40px;color:#fff;font-weight:bold;cursor:pointer;font-size:1em;">${enabled ? 'Выключить' : 'Включить'}</button>
         </div>`;
     }
     
