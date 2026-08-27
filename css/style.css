@@ -14,16 +14,10 @@ body {
     justify-content: center;
     align-items: center;
 }
-
-/* КАНВАС: Добавлено абсолютное позиционирование, чтобы он не выталкивал картинки */
 canvas { 
-    position: absolute;
-    top: 0;
-    left: 0;
     width: 100% !important;
     height: 100% !important;
     image-rendering: pixelated; 
-    z-index: 2; /* Находится под разделителями (z-index: 6) */
 }
 
 #loadingScreen {
@@ -78,42 +72,39 @@ canvas {
     width: 100vw;
     height: 100vh;
     display: none;
+    justify-content: center;
+    align-items: center;
     background: #000;
     overflow: hidden;
     z-index: 500;
 }
 
-/* СТАТУИ: Подняли z-index до 20, чтобы они гарантированно перекрывали любые вылеты игры наружу */
 #leftStatue {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
-    width: 25vw !important;
-    height: 100vh !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 25vw;
+    height: 100vh;
     object-fit: cover;
     object-position: right center;
-    z-index: 20;
+    z-index: 4;
 }
 
 #rightStatue {
-    position: absolute !important;
-    right: 0 !important;
-    top: 0 !important;
-    width: 25vw !important;
-    height: 100vh !important;
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 25vw;
+    height: 100vh;
     object-fit: cover;
     object-position: left center;
-    z-index: 20;
+    z-index: 4;
 }
 
-/* ИГРОВАЯ ЗОНА: Изменили на absolute + transform, чтобы центрирование было железобетонным */
 #gameZone {
-    position: absolute !important;
-    top: 0 !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    width: 50vw !important;
-    height: 100vh !important;
+    position: relative;
+    width: 50vw;
+    height: 100vh;
     overflow: hidden;
     z-index: 10;
     background: #111;
@@ -134,28 +125,29 @@ canvas {
 }
 
 #leftDivider {
-    left: 0 !important;
-    top: 0 !important;
-    height: 100% !important;
-    width: auto !important;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: auto;
     object-fit: contain;
-    z-index: 6; /* Поверх канваса и арки */
+    z-index: 6;
 }
 
 #rightDivider {
-    right: 0 !important;
-    top: 0 !important;
-    height: 100% !important;
-    width: auto !important;
+    right: 0;
+    top: 0;
+    height: 100%;
+    width: auto;
     object-fit: contain;
-    z-index: 6; /* Поверх канваса и арки */
+    z-index: 6;
 }
 
+/* Герой крупнее */
 #hero {
     bottom: 8%;
     left: 50%;
     transform: translateX(-50%);
-    width: 30%;
+    width: 40%; /* Было 30% */
     height: auto;
     object-fit: contain;
     z-index: 5;
@@ -167,19 +159,35 @@ canvas {
     transform: translateX(-50%) scale(0.95);
 }
 
+/* Кнопка назад в разделах крупнее и кликабельнее */
+#section-screen button,
+#dungeon-screen button {
+    width: 60px !important;
+    height: 60px !important;
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+#section-screen button img,
+#dungeon-screen button img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain;
+    pointer-events: none;
+}
+
 @media (max-width: 768px) {
     #leftStatue, #rightStatue {
         display: none !important;
     }
     
     #gameZone {
-        width: 100vw !important;
-        left: 0 !important;
-        transform: none !important;
+        width: 100vw;
+        height: 100vh;
     }
 
     #hero {
-        width: 35%;
+        width: 45%;
         bottom: 10%;
     }
 }
