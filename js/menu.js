@@ -1,4 +1,4 @@
-// js/menu.js
+// js/menu.js — ПОЛНЫЙ, РАБОЧИЙ, СЛОИ ПРАВИЛЬНЫЕ
 const Menu = {
     buildings: [
         { icon: 'Квесты', name: 'Квесты' },
@@ -56,26 +56,25 @@ const Menu = {
         }
         this.screen.appendChild(floor);
         
-        // СЛОЙ 4: Иконки — карусель ПОВЕРХ стены
+        // СЛОЙ 4: Разделитель ВЕРХНИЙ
+        const topSeam = document.createElement('img');
+        topSeam.src = 'assets/game_details/seam_top.png';
+        topSeam.style.cssText = 'position:absolute;top:25%;left:0;width:100%;height:auto;transform:translateY(-50%);z-index:4;pointer-events:none;object-fit:contain;';
+        this.screen.appendChild(topSeam);
+        
+        // СЛОЙ 5: Разделитель НИЖНИЙ
+        const bottomSeam = document.createElement('img');
+        bottomSeam.src = 'assets/game_details/seam_bottom.png';
+        bottomSeam.style.cssText = 'position:absolute;top:75%;left:0;width:100%;height:auto;transform:translateY(-50%);z-index:4;pointer-events:none;object-fit:contain;';
+        this.screen.appendChild(bottomSeam);
+        
+        // СЛОЙ 6: Иконки — карусель
         this.iconContainer = document.createElement('div');
         this.iconContainer.style.cssText = 'position:absolute;top:25%;left:0;width:100%;height:50%;overflow:hidden;z-index:3;';
         this.screen.appendChild(this.iconContainer);
         this.buildCarousel();
         
-        // СЛОЙ 5: Разделители ПОВЕРХ стыков
-        for (let i = 0; i <= 3; i++) {
-            const seamTop = document.createElement('img');
-            seamTop.src = 'assets/game_details/seam_top.png';
-            seamTop.style.cssText = `position:absolute;top:25%;left:${i * 33.33}%;transform:translate(-50%,-50%);width:12vw;max-width:60px;z-index:4;pointer-events:none;`;
-            this.screen.appendChild(seamTop);
-            
-            const seamBottom = document.createElement('img');
-            seamBottom.src = 'assets/game_details/seam_bottom.png';
-            seamBottom.style.cssText = `position:absolute;top:75%;left:${i * 33.33}%;transform:translate(-50%,-50%);width:12vw;max-width:60px;z-index:4;pointer-events:none;`;
-            this.screen.appendChild(seamBottom);
-        }
-        
-        // СЛОЙ 6: Анимация
+        // СЛОЙ 7: Анимация
         this.stepVideo = document.createElement('video');
         this.stepVideo.src = 'assets/animation/step_up.webm';
         this.stepVideo.loop = false;
@@ -84,14 +83,14 @@ const Menu = {
         this.stepVideo.style.cssText = 'position:absolute;bottom:1%;left:50%;transform:translateX(-50%);width:20vw;max-width:120px;z-index:5;pointer-events:none;';
         this.screen.appendChild(this.stepVideo);
         
-        // СЛОЙ 7: Кнопка домой
+        // СЛОЙ 8: Кнопка домой
         const homeBtn = document.createElement('img');
         homeBtn.src = 'assets/Sherwood_Square/oak_area.png';
         homeBtn.style.cssText = 'position:absolute;top:2%;left:2%;width:8vw;max-width:50px;cursor:pointer;z-index:6;';
         homeBtn.onclick = () => { if (typeof showHomeScreen === 'function') showHomeScreen(); };
         this.screen.appendChild(homeBtn);
         
-        // СЛОЙ 8: Стрелки
+        // СЛОЙ 9: Стрелки
         const leftArrow = document.createElement('img');
         leftArrow.src = 'assets/icons/left.png';
         leftArrow.style.cssText = 'position:absolute;left:2%;top:50%;transform:translateY(-50%);width:8vw;max-width:50px;cursor:pointer;z-index:6;';
@@ -114,17 +113,24 @@ const Menu = {
         
         this.buildings.forEach((building) => {
             const section = document.createElement('div');
-            section.style.cssText = 'min-width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;';
+            section.style.cssText = 'min-width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;cursor:pointer;position:relative;padding-bottom:8%;';
             
             const img = new Image();
             img.src = `assets/icons/${this.getIconFile(building.icon)}`;
-            img.style.cssText = 'width:30%;height:auto;max-height:65%;object-fit:contain;pointer-events:none;';
+            img.style.cssText = 'width:30%;height:auto;max-height:50%;object-fit:contain;pointer-events:none;margin-bottom:4px;';
             
+            // Панель all_stat.png под подписью
+            const panel = document.createElement('img');
+            panel.src = 'assets/interface/all_stat.png';
+            panel.style.cssText = 'width:70%;height:auto;object-fit:contain;pointer-events:none;position:relative;';
+            
+            // Подпись поверх панели
             const label = document.createElement('div');
             label.textContent = building.name;
-            label.style.cssText = 'color:#e8d8c0;font-size:1.1em;font-weight:bold;margin-top:4px;pointer-events:none;';
+            label.style.cssText = 'position:absolute;bottom:8%;left:50%;transform:translateX(-50%);width:70%;text-align:center;color:#ffa500;font-size:0.8em;font-weight:bold;pointer-events:none;text-shadow:0 1px 3px #000;z-index:1;';
             
             section.appendChild(img);
+            section.appendChild(panel);
             section.appendChild(label);
             section.onclick = () => this.interact(building);
             
