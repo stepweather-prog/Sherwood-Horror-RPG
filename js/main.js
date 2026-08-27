@@ -38,26 +38,17 @@ function showLoadingOverlay() {
     const overlay = document.createElement('div');
     overlay.id = 'loading-overlay';
     overlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         z-index: 1000;
         background: url('assets/backgrounds/loading_screen_with_logo.png') center/cover no-repeat;
-        display: flex;
-        justify-content: center;
-        align-items: center;
+        display: flex; justify-content: center; align-items: center;
     `;
     
     const spinner = document.createElement('div');
     spinner.style.cssText = `
-        width: 60px;
-        height: 60px;
-        border: 4px solid #c9a040;
-        border-top: 4px solid transparent;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
+        width: 60px; height: 60px;
+        border: 4px solid #c9a040; border-top: 4px solid transparent;
+        border-radius: 50%; animation: spin 1s linear infinite;
     `;
     
     overlay.appendChild(spinner);
@@ -84,18 +75,9 @@ function showHomeScreen() {
 }
 
 function showSectionScreen(building) {
-    if (building.icon === 'Подземка') {
-        showDungeonScreen();
-        return;
-    }
-    if (building.icon === 'Таверна') {
-        showTavernScreen();
-        return;
-    }
-    if (building.icon === 'Таланты') {
-        showLearnedTalentsScreen();
-        return;
-    }
+    if (building.icon === 'Подземка') { showDungeonScreen(); return; }
+    if (building.icon === 'Таверна') { showTavernScreen(); return; }
+    if (building.icon === 'Таланты') { showLearnedTalentsScreen(); return; }
     
     const backgrounds = {
         'Порталы': 'assets/backgrounds/portal.png',
@@ -123,10 +105,9 @@ function showSectionScreen(building) {
             <button onclick="closeSectionScreen()" style="background:transparent;border:none;cursor:pointer;padding:0;width:60px;height:60px;">
                 <img src="assets/icons/back.png" style="width:100%;height:100%;object-fit:contain;">
             </button>
-            <span style="color:#e0c080;font-size:1.2em;text-shadow:0 0 10px #000;">${building.name}</span>
+            <span style="color:#e0c080;font-size:1.2em;">${building.name}</span>
         </div>
-        <div style="flex:1;overflow-y:auto;padding:20px;">
-        </div>
+        <div style="flex:1;overflow-y:auto;padding:20px;"></div>
     </div>`;
     
     document.body.insertAdjacentHTML('beforeend', screenHTML);
@@ -139,9 +120,9 @@ function closeSectionScreen() {
 
 function showDungeonScreen() {
     const screenHTML = `
-    <div id="dungeon-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:100;background:url('assets/backgrounds/sherwood_thicket.png') center/cover no-repeat;display:flex;flex-direction:column;overflow:hidden;">
-        <div style="display:flex;align-items:center;gap:12px;padding:12px;flex-shrink:0;background:rgba(0,0,0,0.5);">
-            <button onclick="closeDungeonScreen()" style="background:transparent;border:none;cursor:pointer;padding:0;width:60px;height:60px;">
+    <div id="dungeon-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:100;background:url('assets/backgrounds/sherwood_thicket.png') center/cover no-repeat;display:flex;flex-direction:column;">
+        <div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(0,0,0,0.5);">
+            <button onclick="closeDungeonScreen()" style="background:transparent;border:none;cursor:pointer;width:60px;height:60px;">
                 <img src="assets/icons/back.png" style="width:100%;height:100%;object-fit:contain;">
             </button>
             <span style="color:#e0c080;font-size:1.2em;">Подземелья</span>
@@ -174,19 +155,17 @@ function closeDungeonScreen() {
 
 function enterDungeon(dungeonId) {
     closeDungeonScreen();
-    alert('Вход в подземку: ' + dungeonId);
+    alert('Вход: ' + dungeonId);
 }
 
-// ========== ТАВЕРНА ==========
+// ТАВЕРНА
 function showTavernScreen() {
-    if (typeof Sherwood !== 'undefined' && Sherwood.Tavern) {
-        Sherwood.Tavern.init();
-    }
+    if (typeof Sherwood !== 'undefined' && Sherwood.Tavern) Sherwood.Tavern.init();
     
     const screenHTML = `
-    <div id="tavern-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:100;background:url('assets/backgrounds/section_tavern.png') center/cover no-repeat;display:flex;flex-direction:column;overflow:hidden;">
-        <div style="display:flex;align-items:center;gap:12px;padding:12px;flex-shrink:0;background:rgba(0,0,0,0.5);">
-            <button onclick="closeTavernScreen()" style="background:transparent;border:none;cursor:pointer;padding:0;width:60px;height:60px;">
+    <div id="tavern-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:100;background:url('assets/backgrounds/section_tavern.png') center/cover no-repeat;display:flex;flex-direction:column;">
+        <div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(0,0,0,0.5);">
+            <button onclick="closeTavernScreen()" style="background:transparent;border:none;cursor:pointer;width:60px;height:60px;">
                 <img src="assets/icons/back.png" style="width:100%;height:100%;object-fit:contain;">
             </button>
             <span style="color:#e0c080;font-size:1.2em;">Таверна</span>
@@ -208,14 +187,10 @@ function renderTavernContent() {
     html += `<button onclick="switchTavernTab(1)" style="flex:1;background:#c9a040;border:none;border-radius:8px;padding:12px;color:#000;font-weight:bold;cursor:pointer;">Контракты</button>`;
     html += `<button onclick="switchTavernTab(2)" style="flex:1;background:#555;border:none;border-radius:8px;padding:12px;color:#fff;font-weight:bold;cursor:pointer;">Таланты</button>`;
     html += '</div><div id="tavern-tab-content"></div>';
-    
     content.innerHTML = html;
     
-    if (Sherwood.Tavern._tab === 2) {
-        renderTavernTalents();
-    } else {
-        renderTavernQuests();
-    }
+    if (Sherwood.Tavern._tab === 2) renderTavernTalents();
+    else renderTavernQuests();
 }
 
 function switchTavernTab(tab) {
@@ -228,33 +203,28 @@ function renderTavernQuests() {
     if (!container) return;
     
     const tavern = Sherwood.Tavern;
-    let html = '';
-    
-    html += `<div style="text-align:center;color:#e0c080;margin-bottom:20px;">Контракты сегодня: ${tavern.getDailyQuestsDone()}/${tavern.getMaxDailyQuests()}</div>`;
+    let html = `<div style="text-align:center;color:#e0c080;margin-bottom:20px;">Контракты: ${tavern.getDailyQuestsDone()}/${tavern.getMaxDailyQuests()}</div>`;
     
     const current = tavern.getCurrentQuest();
-    
     if (current) {
         const quest = current.quest;
-        const remaining = tavern.getContractTimeRemaining();
         const ready = tavern.isContractReady();
         
-        html += `<div style="background:rgba(0,0,0,0.7);border:2px solid #c9a040;border-radius:10px;padding:15px;margin-bottom:20px;">
-            <div style="color:#ffd700;font-weight:bold;margin-bottom:10px;">${quest.name}</div>
-            <div style="color:#ccc;margin-bottom:10px;">${quest.desc}</div>
-            <div style="color:#aaa;font-size:0.9em;margin-bottom:10px;">Противник: ${quest.enemy.name}</div>`;
+        html += `<div style="text-align:center;margin-bottom:20px;">
+            <div style="color:#ffd700;font-weight:bold;font-size:1.2em;">${quest.name}</div>
+            <div style="color:#ccc;">${quest.desc}</div>
+            <div style="color:#aaa;">Противник: ${quest.enemy.name}</div>`;
         
         if (!ready) {
-            const mins = Math.ceil(remaining / 60);
+            const mins = Math.ceil(tavern.getContractTimeRemaining() / 60);
             html += `<div style="color:#ff9800;font-weight:bold;">Осталось: ${mins} мин.</div>`;
         } else {
-            html += `<button onclick="claimTavernContract()" style="background:#4caf50;border:none;border-radius:8px;padding:12px;color:#fff;font-weight:bold;cursor:pointer;width:100%;margin-bottom:10px;">Забрать награду</button>`;
-            html += `<button onclick="attackTavernQuest()" style="background:#f44336;border:none;border-radius:8px;padding:12px;color:#fff;font-weight:bold;cursor:pointer;width:100%;">Атаковать</button>`;
+            html += `<button onclick="claimTavernContract()" style="background:#4caf50;border:none;border-radius:8px;padding:15px;color:#fff;font-weight:bold;cursor:pointer;width:80%;margin:10px auto;">Забрать награду</button>`;
+            html += `<button onclick="attackTavernQuest()" style="background:#f44336;border:none;border-radius:8px;padding:15px;color:#fff;font-weight:bold;cursor:pointer;width:80%;margin:10px auto;">Атаковать</button>`;
         }
-        
         html += '</div>';
     } else {
-        html += `<button onclick="startTavernQuest()" style="background:#c9a040;border:none;border-radius:8px;padding:15px;color:#000;font-weight:bold;cursor:pointer;width:100%;margin-bottom:20px;">Взять контракт</button>`;
+        html += `<button onclick="startTavernQuest()" style="background:#c9a040;border:none;border-radius:8px;padding:15px;color:#000;font-weight:bold;cursor:pointer;width:100%;">Взять контракт</button>`;
     }
     
     container.innerHTML = html;
@@ -284,7 +254,7 @@ function renderTavernTalents() {
     const container = document.getElementById('tavern-tab-content');
     if (!container) return;
     
-    let html = '<div style="display:flex;flex-direction:column;gap:30px;padding:20px 0 40px;">';
+    let html = '<div style="display:flex;flex-direction:column;align-items:center;gap:40px;padding:20px 0 40px;">';
     
     for (const talent of Talents.list) {
         const level = Talents.getLevel(talent.id);
@@ -292,16 +262,16 @@ function renderTavernTalents() {
         const isLearned = level > 0;
         
         html += `
-        <div style="display:flex;flex-direction:column;align-items:center;text-align:center;background:rgba(0,0,0,0.7);border:2px solid #c9a040;border-radius:12px;padding:20px;">
-            <img src="assets/talents/${talent.icon}" style="width:120px;height:120px;object-fit:contain;margin-bottom:10px;">
-            <div style="color:#ffd700;font-weight:bold;font-size:1.2em;margin-bottom:5px;">${talent.name}</div>
-            <div style="color:#ccc;font-size:0.9em;margin-bottom:10px;">${talent.desc}</div>
-            ${isLearned ? `<div style="color:#aaa;font-size:0.8em;margin-bottom:10px;">Уровень: ${level}/${talent.maxLevel}</div>` : ''}
+        <div style="display:flex;flex-direction:column;align-items:center;text-align:center;">
+            <img src="assets/talents/${talent.icon}" style="width:150px;height:150px;object-fit:contain;margin-bottom:10px;">
+            <div style="color:#ffd700;font-weight:bold;font-size:1.2em;">${talent.name}</div>
+            <div style="color:#ccc;font-size:0.9em;">${talent.desc}</div>
+            ${isLearned ? `<div style="color:#aaa;font-size:0.8em;">Уровень: ${level}/${talent.maxLevel}</div>` : ''}
             ${!isLearned ? 
                 `<button onclick="learnTalent('${talent.id}')" style="background:#4caf50;border:none;border-radius:8px;padding:15px 40px;color:#fff;font-weight:bold;cursor:pointer;">Изучить — ${cost} золота</button>` :
                 level < talent.maxLevel ? 
                 `<button onclick="upgradeTalent('${talent.id}')" style="background:#ff9800;border:none;border-radius:8px;padding:15px 40px;color:#fff;font-weight:bold;cursor:pointer;">Улучшить — ${cost} золота</button>` :
-                `<div style="color:#4caf50;font-weight:bold;font-size:1.2em;">МАКСИМУМ</div>`
+                `<div style="color:#4caf50;font-weight:bold;">МАКСИМУМ</div>`
             }
         </div>`;
     }
@@ -327,9 +297,9 @@ function closeTavernScreen() {
     if (screen) screen.remove();
 }
 
-// ========== ЭКРАН ТАЛАНТОВ ==========
+// ТАЛАНТЫ В ГОРОДЕ
 function showLearnedTalentsScreen() {
-    let html = '<div style="display:flex;flex-direction:column;gap:30px;padding:20px 0 40px;">';
+    let html = '<div style="display:flex;flex-direction:column;align-items:center;gap:40px;padding:20px 0 40px;">';
     
     for (const talent of Talents.list) {
         const level = Talents.getLevel(talent.id);
@@ -338,11 +308,11 @@ function showLearnedTalentsScreen() {
         const enabled = Talents.isEnabled(talent.id);
         
         html += `
-        <div style="display:flex;flex-direction:column;align-items:center;text-align:center;background:rgba(0,0,0,0.7);border:2px solid #c9a040;border-radius:12px;padding:20px;">
-            <img src="assets/talents/${talent.icon}" style="width:120px;height:120px;object-fit:contain;margin-bottom:10px;">
-            <div style="color:#ffd700;font-weight:bold;font-size:1.2em;margin-bottom:5px;">${talent.name}</div>
-            <div style="color:#ccc;font-size:0.9em;margin-bottom:10px;">${talent.desc}</div>
-            <div style="color:#aaa;font-size:0.8em;margin-bottom:15px;">Уровень: ${level}/${talent.maxLevel}</div>
+        <div style="display:flex;flex-direction:column;align-items:center;text-align:center;">
+            <img src="assets/talents/${talent.icon}" style="width:150px;height:150px;object-fit:contain;margin-bottom:10px;">
+            <div style="color:#ffd700;font-weight:bold;font-size:1.2em;">${talent.name}</div>
+            <div style="color:#ccc;font-size:0.9em;">${talent.desc}</div>
+            <div style="color:#aaa;font-size:0.8em;">Уровень: ${level}/${talent.maxLevel}</div>
             <button onclick="toggleTalent('${talent.id}')" style="background:${enabled ? '#4caf50' : '#f44336'};border:none;border-radius:8px;padding:15px 40px;color:#fff;font-weight:bold;cursor:pointer;">${enabled ? 'Выключить' : 'Включить'}</button>
         </div>`;
     }
