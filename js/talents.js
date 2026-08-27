@@ -39,6 +39,7 @@ const Talents = {
         }
         
         p.resources.gold -= cost;
+        if (!p.talents) p.talents = {};
         p.talents[id] = { level: 1, enabled: true };
         Sherwood.saveGame();
         return { success: true };
@@ -49,7 +50,7 @@ const Talents = {
         if (!talent) return { success: false, reason: 'Талант не найден' };
         
         const p = Sherwood.getPlayer();
-        const current = p.talents[id];
+        const current = p.talents && p.talents[id];
         if (!current) return { success: false, reason: 'Талант не изучен' };
         if (current.level >= talent.maxLevel) return { success: false, reason: 'Максимальный уровень' };
         
@@ -66,7 +67,7 @@ const Talents = {
     
     toggle(id) {
         const p = Sherwood.getPlayer();
-        const current = p.talents[id];
+        const current = p.talents && p.talents[id];
         if (!current) return { success: false };
         current.enabled = !current.enabled;
         Sherwood.saveGame();
