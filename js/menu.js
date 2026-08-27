@@ -1,4 +1,4 @@
-// js/menu.js — ПОЛНЫЙ, РАБОЧИЙ
+// js/menu.js — ГОРИЗОНТАЛЬНАЯ КАРУСЕЛЬ КАК В ПОДЗЕМКЕ
 const Menu = {
     buildings: [
         { icon: 'Квесты', name: 'Квесты' },
@@ -53,7 +53,7 @@ const Menu = {
         }
         this.screen.appendChild(floor);
         
-        // Разделители — по 3, исходный размер
+        // Разделители — по 3
         for (let i = 0; i < 3; i++) {
             const seamTop = document.createElement('img');
             seamTop.src = 'assets/game_details/seam_top.png';
@@ -66,7 +66,7 @@ const Menu = {
             this.screen.appendChild(seamBottom);
         }
         
-        // Иконки
+        // Иконки — карусель
         this.iconContainer = document.createElement('div');
         this.iconContainer.style.cssText = 'position:absolute;top:25%;left:0;width:100%;height:50%;white-space:nowrap;overflow:hidden;z-index:3;';
         this.screen.appendChild(this.iconContainer);
@@ -78,26 +78,26 @@ const Menu = {
         this.stepVideo.loop = false;
         this.stepVideo.muted = true;
         this.stepVideo.playsInline = true;
-        this.stepVideo.style.cssText = 'position:absolute;bottom:1%;left:50%;transform:translateX(-50%);width:20vw;max-width:120px;height:auto;z-index:4;pointer-events:none;';
+        this.stepVideo.style.cssText = 'position:absolute;bottom:1%;left:50%;transform:translateX(-50%);width:20vw;max-width:120px;z-index:4;pointer-events:none;';
         this.screen.appendChild(this.stepVideo);
         
         // Кнопка домой
         const homeBtn = document.createElement('img');
         homeBtn.src = 'assets/Sherwood_Square/oak_area.png';
-        homeBtn.style.cssText = 'position:absolute;top:2%;left:2%;width:8vw;max-width:50px;height:auto;cursor:pointer;z-index:10;';
+        homeBtn.style.cssText = 'position:absolute;top:2%;left:2%;width:8vw;max-width:50px;cursor:pointer;z-index:10;';
         homeBtn.onclick = () => { if (typeof showHomeScreen === 'function') showHomeScreen(); };
         this.screen.appendChild(homeBtn);
         
         // Стрелки
         const leftArrow = document.createElement('img');
         leftArrow.src = 'assets/icons/left.png';
-        leftArrow.style.cssText = 'position:absolute;left:2%;top:50%;transform:translateY(-50%);width:8vw;max-width:50px;height:auto;cursor:pointer;z-index:10;';
+        leftArrow.style.cssText = 'position:absolute;left:2%;top:50%;transform:translateY(-50%);width:8vw;max-width:50px;cursor:pointer;z-index:10;';
         leftArrow.onclick = () => this.prev();
         this.screen.appendChild(leftArrow);
         
         const rightArrow = document.createElement('img');
         rightArrow.src = 'assets/icons/right.png';
-        rightArrow.style.cssText = 'position:absolute;right:2%;top:50%;transform:translateY(-50%);width:8vw;max-width:50px;height:auto;cursor:pointer;z-index:10;';
+        rightArrow.style.cssText = 'position:absolute;right:2%;top:50%;transform:translateY(-50%);width:8vw;max-width:50px;cursor:pointer;z-index:10;';
         rightArrow.onclick = () => this.next();
         this.screen.appendChild(rightArrow);
     },
@@ -111,7 +111,7 @@ const Menu = {
             
             const img = new Image();
             img.src = `assets/icons/${this.getIconFile(building.icon)}`;
-            img.style.cssText = 'width:30%;height:60%;object-fit:contain;margin-top:5%;pointer-events:none;';
+            img.style.cssText = 'width:25%;height:60%;object-fit:contain;margin-top:5%;pointer-events:none;display:block;margin-left:auto;margin-right:auto;';
             
             const label = document.createElement('div');
             label.textContent = building.name;
