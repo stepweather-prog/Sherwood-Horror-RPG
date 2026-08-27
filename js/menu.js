@@ -1,4 +1,4 @@
-// js/menu.js — ПОЛНЫЙ, с исправлениями
+// js/menu.js — ПОЛНЫЙ, РАБОЧИЙ
 const Menu = {
     buildings: [
         { icon: 'Квесты', name: 'Квесты' },
@@ -53,7 +53,7 @@ const Menu = {
         }
         this.screen.appendChild(floor);
         
-        // Разделители — ПО 3 ШТУКИ, исходный размер
+        // Разделители — по 3, исходный размер
         for (let i = 0; i < 3; i++) {
             const seamTop = document.createElement('img');
             seamTop.src = 'assets/game_details/seam_top.png';
@@ -72,7 +72,7 @@ const Menu = {
         this.screen.appendChild(this.iconContainer);
         this.buildCarousel();
         
-        // Анимация — в 2 раза крупнее чем было, но не перекрывает
+        // Анимация
         this.stepVideo = document.createElement('video');
         this.stepVideo.src = 'assets/animation/step_up.webm';
         this.stepVideo.loop = false;
@@ -111,7 +111,7 @@ const Menu = {
             
             const img = new Image();
             img.src = `assets/icons/${this.getIconFile(building.icon)}`;
-            img.style.cssText = 'width:auto;height:60%;max-width:40%;object-fit:contain;margin-top:5%;pointer-events:none;';
+            img.style.cssText = 'width:30%;height:60%;object-fit:contain;margin-top:5%;pointer-events:none;';
             
             const label = document.createElement('div');
             label.textContent = building.name;
