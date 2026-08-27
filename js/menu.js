@@ -1,4 +1,4 @@
-// js/menu.js — полный, рабочий
+// js/menu.js — полный, исправленный
 const Menu = {
     buildings: [
         { icon: 'Квесты', name: 'Квесты' },
@@ -33,51 +33,73 @@ const Menu = {
         this.iconContainer = document.getElementById('menu-icon-container');
         
         this.screen.style.display = 'block';
+        this.screen.innerHTML = '';
         
         // Потолок
-        document.getElementById('menu-ceiling').style.backgroundImage = "url('assets/Sherwood_Square/area_ceiling_moon.png')";
-        
-        // Пол
-        const floor = document.getElementById('menu-floor');
-        floor.innerHTML = '';
-        for (let i = 1; i <= 3; i++) {
-            const tile = document.createElement('div');
-            tile.style.cssText = `width:33.33%;height:100%;background-image:url('assets/Sherwood_Square/floor${i}.png');background-size:cover;`;
-            floor.appendChild(tile);
-        }
+        const ceiling = document.createElement('div');
+        ceiling.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:25%;background:url("assets/Sherwood_Square/area_ceiling_moon.png") center/cover no-repeat;';
+        this.screen.appendChild(ceiling);
         
         // Стена
-        document.getElementById('menu-wall').style.backgroundImage = "url('assets/Sherwood_Square/wall_area_1.png')";
+        const wall = document.createElement('div');
+        wall.style.cssText = 'position:absolute;top:25%;left:0;width:100%;height:50%;background:url("assets/Sherwood_Square/wall_area_1.png") center/cover no-repeat;';
+        this.screen.appendChild(wall);
         
-        // Разделители
-        const wallY = window.innerHeight * 0.25;
-        const floorY = window.innerHeight * 0.75;
+        // Пол
+        const floor = document.createElement('div');
+        floor.style.cssText = 'position:absolute;bottom:0;left:0;width:100%;height:25%;display:flex;';
+        for (let i = 1; i <= 3; i++) {
+            const tile = document.createElement('div');
+            tile.style.cssText = `width:33.33%;height:100%;background:url('assets/Sherwood_Square/floor${i}.png') center/cover no-repeat;`;
+            floor.appendChild(tile);
+        }
+        this.screen.appendChild(floor);
         
-        const seamTop = document.createElement('div');
-        seamTop.style.cssText = `position:absolute;top:${wallY - 30}px;left:0;width:100%;height:60px;background-image:url('assets/game_details/seam_top.png');background-size:100% 100%;z-index:5;`;
+        // Разделители — как на главной, исходный размер
+        const seamTop = document.createElement('img');
+        seamTop.src = 'assets/game_details/seam_top.png';
+        seamTop.style.cssText = 'position:absolute;top:25%;left:50%;transform:translate(-50%,-50%);width:auto;height:60px;z-index:5;';
         this.screen.appendChild(seamTop);
         
-        const seamBottom = document.createElement('div');
-        seamBottom.style.cssText = `position:absolute;top:${floorY - 30}px;left:0;width:100%;height:60px;background-image:url('assets/game_details/seam_bottom.png');background-size:100% 100%;z-index:5;`;
+        const seamBottom = document.createElement('img');
+        seamBottom.src = 'assets/game_details/seam_bottom.png';
+        seamBottom.style.cssText = 'position:absolute;top:75%;left:50%;transform:translate(-50%,-50%);width:auto;height:60px;z-index:5;';
         this.screen.appendChild(seamBottom);
         
-        // Анимация
+        // Иконки
+        this.iconContainer = document.createElement('div');
+        this.iconContainer.style.cssText = 'position:absolute;top:25%;left:0;width:100%;height:50%;white-space:nowrap;overflow:hidden;z-index:3;';
+        this.screen.appendChild(this.iconContainer);
+        this.buildCarousel();
+        
+        // Анимация внизу — маленькая
         this.stepVideo = document.createElement('video');
         this.stepVideo.src = 'assets/animation/step_up.webm';
         this.stepVideo.loop = false;
         this.stepVideo.muted = true;
         this.stepVideo.playsInline = true;
-        this.stepVideo.style.cssText = 'position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:30vw;height:30vw;z-index:6;object-fit:contain;';
+        this.stepVideo.style.cssText = 'position:absolute;bottom:2%;left:50%;transform:translateX(-50%);width:15vw;max-width:80px;height:auto;z-index:4;pointer-events:none;';
         this.screen.appendChild(this.stepVideo);
         
-        // Карусель
-        this.buildCarousel();
+        // Кнопка домой
+        const homeBtn = document.createElement('img');
+        homeBtn.src = 'assets/Sherwood_Square/oak_area.png';
+        homeBtn.style.cssText = 'position:absolute;top:2%;left:2%;width:8vw;max-width:50px;height:auto;cursor:pointer;z-index:10;';
+        homeBtn.onclick = () => { if (typeof showHomeScreen === 'function') showHomeScreen(); };
+        this.screen.appendChild(homeBtn);
         
-        document.getElementById('menu-left-arrow').addEventListener('click', () => this.prev());
-        document.getElementById('menu-right-arrow').addEventListener('click', () => this.next());
-        document.getElementById('menu-home-btn').addEventListener('click', () => {
-            if (typeof showHomeScreen === 'function') showHomeScreen();
-        });
+        // Стрелки
+        const leftArrow = document.createElement('img');
+        leftArrow.src = 'assets/icons/left.png';
+        leftArrow.style.cssText = 'position:absolute;left:2%;top:50%;transform:translateY(-50%);width:8vw;max-width:50px;height:auto;cursor:pointer;z-index:10;';
+        leftArrow.onclick = () => this.prev();
+        this.screen.appendChild(leftArrow);
+        
+        const rightArrow = document.createElement('img');
+        rightArrow.src = 'assets/icons/right.png';
+        rightArrow.style.cssText = 'position:absolute;right:2%;top:50%;transform:translateY(-50%);width:8vw;max-width:50px;height:auto;cursor:pointer;z-index:10;';
+        rightArrow.onclick = () => this.next();
+        this.screen.appendChild(rightArrow);
     },
     
     buildCarousel() {
@@ -85,19 +107,21 @@ const Menu = {
         
         this.buildings.forEach((building) => {
             const section = document.createElement('div');
-            section.style.cssText = 'display:inline-block;width:100%;height:100%;text-align:center;vertical-align:top;';
+            section.style.cssText = 'display:inline-block;width:100%;height:100%;text-align:center;vertical-align:top;cursor:pointer;';
             
             const img = new Image();
             img.src = `assets/icons/${this.getIconFile(building.icon)}`;
-            img.style.cssText = 'width:25%;height:60%;object-fit:contain;margin-top:5%;';
-            img.onclick = () => this.interact(building);
+            img.style.cssText = 'width:auto;height:60%;max-width:40%;object-fit:contain;margin-top:5%;pointer-events:none;';
             
             const label = document.createElement('div');
             label.textContent = building.name;
-            label.style.cssText = 'color:#e8d8c0;font-size:1.2em;font-weight:bold;';
+            label.style.cssText = 'color:#e8d8c0;font-size:1.1em;font-weight:bold;pointer-events:none;';
             
             section.appendChild(img);
             section.appendChild(label);
+            
+            section.onclick = () => this.interact(building);
+            
             this.iconContainer.appendChild(section);
         });
         
@@ -158,7 +182,7 @@ const Menu = {
             this.stepTimer = setTimeout(() => {
                 this.stepVideo.pause();
                 this.isAnimating = false;
-            }, 600);
+            }, 400);
         }
     },
     
