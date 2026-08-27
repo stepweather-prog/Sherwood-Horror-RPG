@@ -1,4 +1,4 @@
-// js/menu-html.js
+// js/menu.js — полный, рабочий
 const Menu = {
     buildings: [
         { icon: 'Квесты', name: 'Квесты' },
@@ -24,34 +24,55 @@ const Menu = {
     currentIndex: 0,
     screen: null,
     iconContainer: null,
-    wallContainer: null,
+    isAnimating: false,
+    stepVideo: null,
+    stepTimer: null,
     
     init() {
         this.screen = document.getElementById('menuScreen');
         this.iconContainer = document.getElementById('menu-icon-container');
-        this.wallContainer = document.getElementById('menu-wall');
         
         this.screen.style.display = 'block';
         
         // Потолок
         document.getElementById('menu-ceiling').style.backgroundImage = "url('assets/Sherwood_Square/area_ceiling_moon.png')";
         
-        // Пол — три плиты
+        // Пол
         const floor = document.getElementById('menu-floor');
         floor.innerHTML = '';
         for (let i = 1; i <= 3; i++) {
             const tile = document.createElement('div');
-            tile.style.cssText = `width:33.33%;height:100%;background-image:url('assets/Sherwood_Square/floor${i}.png');background-size:cover;background-position:center;`;
+            tile.style.cssText = `width:33.33%;height:100%;background-image:url('assets/Sherwood_Square/floor${i}.png');background-size:cover;`;
             floor.appendChild(tile);
         }
         
         // Стена
-        this.wallContainer.style.backgroundImage = "url('assets/Sherwood_Square/wall_area_1.png')";
+        document.getElementById('menu-wall').style.backgroundImage = "url('assets/Sherwood_Square/wall_area_1.png')";
         
-        // Строим карусель иконок
+        // Разделители
+        const wallY = window.innerHeight * 0.25;
+        const floorY = window.innerHeight * 0.75;
+        
+        const seamTop = document.createElement('div');
+        seamTop.style.cssText = `position:absolute;top:${wallY - 30}px;left:0;width:100%;height:60px;background-image:url('assets/game_details/seam_top.png');background-size:100% 100%;z-index:5;`;
+        this.screen.appendChild(seamTop);
+        
+        const seamBottom = document.createElement('div');
+        seamBottom.style.cssText = `position:absolute;top:${floorY - 30}px;left:0;width:100%;height:60px;background-image:url('assets/game_details/seam_bottom.png');background-size:100% 100%;z-index:5;`;
+        this.screen.appendChild(seamBottom);
+        
+        // Анимация
+        this.stepVideo = document.createElement('video');
+        this.stepVideo.src = 'assets/animation/step_up.webm';
+        this.stepVideo.loop = false;
+        this.stepVideo.muted = true;
+        this.stepVideo.playsInline = true;
+        this.stepVideo.style.cssText = 'position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:30vw;height:30vw;z-index:6;object-fit:contain;';
+        this.screen.appendChild(this.stepVideo);
+        
+        // Карусель
         this.buildCarousel();
         
-        // Обработчики
         document.getElementById('menu-left-arrow').addEventListener('click', () => this.prev());
         document.getElementById('menu-right-arrow').addEventListener('click', () => this.next());
         document.getElementById('menu-home-btn').addEventListener('click', () => {
@@ -62,13 +83,13 @@ const Menu = {
     buildCarousel() {
         this.iconContainer.innerHTML = '';
         
-        this.buildings.forEach((building, index) => {
+        this.buildings.forEach((building) => {
             const section = document.createElement('div');
-            section.style.cssText = `display:inline-block;width:100%;height:100%;text-align:center;position:relative;`;
+            section.style.cssText = 'display:inline-block;width:100%;height:100%;text-align:center;vertical-align:top;';
             
             const img = new Image();
             img.src = `assets/icons/${this.getIconFile(building.icon)}`;
-            img.style.cssText = 'width:25%;height:50%;object-fit:contain;margin-top:10%;';
+            img.style.cssText = 'width:25%;height:60%;object-fit:contain;margin-top:5%;';
             img.onclick = () => this.interact(building);
             
             const label = document.createElement('div');
@@ -80,7 +101,7 @@ const Menu = {
             this.iconContainer.appendChild(section);
         });
         
-        this.updatePosition();
+        this.updatePosition(false);
     },
     
     getIconFile(icon) {
@@ -107,20 +128,38 @@ const Menu = {
         return map[icon] || 'arena.png';
     },
     
-    updatePosition() {
+    updatePosition(animate = true) {
         const offset = -this.currentIndex * 100;
+        this.iconContainer.style.transition = animate ? 'transform 0.4s ease' : 'none';
         this.iconContainer.style.transform = `translateX(${offset}%)`;
-        this.iconContainer.style.transition = 'transform 0.4s ease';
     },
     
     next() {
+        if (this.isAnimating) return;
         this.currentIndex = (this.currentIndex + 1) % this.buildings.length;
         this.updatePosition();
+        this.playStepAnimation();
     },
     
     prev() {
+        if (this.isAnimating) return;
         this.currentIndex = (this.currentIndex - 1 + this.buildings.length) % this.buildings.length;
         this.updatePosition();
+        this.playStepAnimation();
+    },
+    
+    playStepAnimation() {
+        if (this.stepVideo) {
+            this.isAnimating = true;
+            this.stepVideo.currentTime = 0;
+            this.stepVideo.play().catch(() => {});
+            
+            clearTimeout(this.stepTimer);
+            this.stepTimer = setTimeout(() => {
+                this.stepVideo.pause();
+                this.isAnimating = false;
+            }, 600);
+        }
     },
     
     interact(building) {
@@ -133,5 +172,7 @@ const Menu = {
     
     destroy() {
         if (this.screen) this.screen.style.display = 'none';
+        clearTimeout(this.stepTimer);
+        if (this.stepVideo) this.stepVideo.pause();
     }
 };
