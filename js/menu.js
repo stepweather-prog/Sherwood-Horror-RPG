@@ -1,4 +1,4 @@
-// js/menu.js — ПОЛНЫЙ, РАБОЧИЙ, СЛОИ ПРАВИЛЬНЫЕ
+// js/menu.js 
 const Menu = {
     buildings: [
         { icon: 'Квесты', name: 'Квесты' },
@@ -56,23 +56,23 @@ const Menu = {
         }
         this.screen.appendChild(floor);
         
-        // СЛОЙ 4: Разделитель ВЕРХНИЙ
+        // СЛОЙ 4: Иконки — карусель
+        this.iconContainer = document.createElement('div');
+        this.iconContainer.style.cssText = 'position:absolute;top:25%;left:0;width:100%;height:50%;overflow:hidden;z-index:3;';
+        this.screen.appendChild(this.iconContainer);
+        this.buildCarousel();
+        
+        // СЛОЙ 5: Разделитель ВЕРХНИЙ
         const topSeam = document.createElement('img');
         topSeam.src = 'assets/game_details/seam_top.png';
         topSeam.style.cssText = 'position:absolute;top:25%;left:0;width:100%;height:auto;transform:translateY(-50%);z-index:4;pointer-events:none;object-fit:contain;';
         this.screen.appendChild(topSeam);
         
-        // СЛОЙ 5: Разделитель НИЖНИЙ
+        // СЛОЙ 6: Разделитель НИЖНИЙ
         const bottomSeam = document.createElement('img');
         bottomSeam.src = 'assets/game_details/seam_bottom.png';
         bottomSeam.style.cssText = 'position:absolute;top:75%;left:0;width:100%;height:auto;transform:translateY(-50%);z-index:4;pointer-events:none;object-fit:contain;';
         this.screen.appendChild(bottomSeam);
-        
-        // СЛОЙ 6: Иконки — карусель
-        this.iconContainer = document.createElement('div');
-        this.iconContainer.style.cssText = 'position:absolute;top:25%;left:0;width:100%;height:50%;overflow:hidden;z-index:3;';
-        this.screen.appendChild(this.iconContainer);
-        this.buildCarousel();
         
         // СЛОЙ 7: Анимация
         this.stepVideo = document.createElement('video');
@@ -113,21 +113,19 @@ const Menu = {
         
         this.buildings.forEach((building) => {
             const section = document.createElement('div');
-            section.style.cssText = 'min-width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;cursor:pointer;position:relative;padding-bottom:8%;';
+            section.style.cssText = 'min-width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;';
             
             const img = new Image();
             img.src = `assets/icons/${this.getIconFile(building.icon)}`;
-            img.style.cssText = 'width:30%;height:auto;max-height:50%;object-fit:contain;pointer-events:none;margin-bottom:4px;';
+            img.style.cssText = 'width:45%;height:auto;max-height:60%;object-fit:contain;pointer-events:none;margin-bottom:2px;';
             
-            // Панель all_stat.png под подписью
             const panel = document.createElement('img');
-            panel.src = 'assets/interface/all_stat.png';
-            panel.style.cssText = 'width:70%;height:auto;object-fit:contain;pointer-events:none;position:relative;';
+            panel.src = 'assets/icons/all_stat.png';
+            panel.style.cssText = 'width:60%;height:auto;object-fit:contain;pointer-events:none;';
             
-            // Подпись поверх панели
             const label = document.createElement('div');
             label.textContent = building.name;
-            label.style.cssText = 'position:absolute;bottom:8%;left:50%;transform:translateX(-50%);width:70%;text-align:center;color:#ffa500;font-size:0.8em;font-weight:bold;pointer-events:none;text-shadow:0 1px 3px #000;z-index:1;';
+            label.style.cssText = 'position:absolute;bottom:18%;left:50%;transform:translateX(-50%);width:60%;text-align:center;color:#ffa500;font-size:0.85em;font-weight:bold;pointer-events:none;text-shadow:0 1px 3px #000;z-index:1;';
             
             section.appendChild(img);
             section.appendChild(panel);
