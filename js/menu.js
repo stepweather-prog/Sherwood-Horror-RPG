@@ -33,7 +33,7 @@ const Menu = {
     rightArrow: null,
     wallImage: null,
     ceilingImage: null,
-    floorImage: null,
+    floorImages: [],
     stepVideo: null,
     stepTimer: null,
     wallOffset: 0,
@@ -55,12 +55,13 @@ const Menu = {
         this.wallImage.src = 'assets/Sherwood_Square/wall_area_1.png';
         this.ceilingImage = new Image();
         this.ceilingImage.src = 'assets/Sherwood_Square/area_ceiling_moon.png';
+        
         this.floorImages = [];
-for (let i = 1; i <= 3; i++) {
-    const img = new Image();
-    img.src = `assets/Sherwood_Square/floor${i}.png`;
-    this.floorImages.push(img);
-}
+        for (let i = 1; i <= 3; i++) {
+            const img = new Image();
+            img.src = `assets/Sherwood_Square/floor${i}.png`;
+            this.floorImages.push(img);
+        }
         
         this.stepVideo = document.createElement('video');
         this.stepVideo.src = 'assets/animation/step_up.webm';
@@ -99,8 +100,15 @@ for (let i = 1; i <= 3; i++) {
         if (this.stepVideo) {
             this.stepVideo.currentTime = 0;
             this.stepVideo.play().catch(() => {});
+            
             clearTimeout(this.stepTimer);
-            this.stepTimer = setTimeout(() => this.stepVideo.pause(), 400);
+            this.stepTimer = setTimeout(() => {
+                this.stepVideo.pause();
+                // Замирает на последнем кадре
+                if (this.stepVideo.duration) {
+                    this.stepVideo.currentTime = this.stepVideo.duration;
+                }
+            }, 600);
         }
     },
     
@@ -175,20 +183,20 @@ for (let i = 1; i <= 3; i++) {
         
         // Кнопка домой
         if (typeof Textures !== 'undefined' && Textures.oak) {
-            const homeSize = Math.min(W * 0.08, H * 0.08);
+            const homeSize = Math.min(W * 0.1, H * 0.1);
             ctx.drawImage(Textures.oak, 20, 20, homeSize, homeSize);
             this.homeRect = { x: 20, y: 20, w: homeSize, h: homeSize };
         }
         
         // Пол — три плиты
         if (this.floorImages && this.floorImages.length === 3) {
-    for (let i = 0; i < 3; i++) {
-        const img = this.floorImages[i];
-        if (img && img.complete) {
-            ctx.drawImage(img, i * tileWidth, floorY, tileWidth, tileHeight);
+            for (let i = 0; i < 3; i++) {
+                const img = this.floorImages[i];
+                if (img && img.complete) {
+                    ctx.drawImage(img, i * tileWidth, floorY, tileWidth, tileHeight);
+                }
+            }
         }
-    }
-}
         
         // Стена и иконки — карусель
         const wallY = skyHeight;
@@ -208,7 +216,7 @@ for (let i = 1; i <= 3; i++) {
                     ctx.drawImage(this.wallImage, wallX, wallY, sectionWidth, wallHeight);
                     
                     const building = this.buildings[i];
-                    const iconSize = Math.min(wallHeight * 0.5, W * 0.25);
+                    const iconSize = Math.min(wallHeight * 0.7, W * 0.35);
                     const drawX = wallX + sectionWidth / 2 - iconSize / 2;
                     const sy = wallY + wallHeight / 2 - iconSize / 2 - 20;
                     
@@ -221,14 +229,14 @@ for (let i = 1; i <= 3; i++) {
                     }
                     
                     if (typeof Textures !== 'undefined' && Textures.buildings && Textures.buildings['all_stat']) {
-                        const signW = iconSize * 1.1;
-                        const signH = iconSize * 0.22;
+                        const signW = iconSize * 1.2;
+                        const signH = iconSize * 0.3;
                         const signX = drawX + iconSize / 2 - signW / 2;
                         const signY = sy + iconSize + 15;
                         
                         ctx.drawImage(Textures.buildings['all_stat'], signX, signY, signW, signH);
                         ctx.fillStyle = '#e8d8c0';
-                        ctx.font = `bold ${Math.floor(signH * 0.45)}px "Times New Roman", serif`;
+                        ctx.font = `bold ${Math.floor(signH * 0.5)}px "Times New Roman", serif`;
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
                         ctx.fillText(building.name, drawX + iconSize / 2, signY + signH / 2);
@@ -237,26 +245,28 @@ for (let i = 1; i <= 3; i++) {
             }
         }
         
-        // Разделители — по два на каждую плиту (верхний и нижний)
+        // Разделители — крупнее
+        const seamHeight = 80;
+        
         if (typeof Textures !== 'undefined' && Textures.seamTop && Textures.seamTop.complete) {
             const img = Textures.seamTop;
             for (let i = 0; i < 3; i++) {
-                ctx.drawImage(img, i * tileWidth, wallY - 20, tileWidth, 40);
+                ctx.drawImage(img, i * tileWidth, wallY - seamHeight/2, tileWidth, seamHeight);
             }
         }
         
         if (typeof Textures !== 'undefined' && Textures.seamBottom && Textures.seamBottom.complete) {
             const img = Textures.seamBottom;
             for (let i = 0; i < 3; i++) {
-                ctx.drawImage(img, i * tileWidth, floorY - 20, tileWidth, 40);
+                ctx.drawImage(img, i * tileWidth, floorY - seamHeight/2, tileWidth, seamHeight);
             }
         }
         
-        // Анимация — от самого низа окна игры
-        if (this.stepVideo && this.stepVideo.readyState >= 2 && !this.stepVideo.paused) {
-            const videoSize = Math.min(W * 0.25, H * 0.25);
+        // Анимация — крупнее, замирает
+        if (this.stepVideo && this.stepVideo.readyState >= 2) {
+            const videoSize = Math.min(W * 0.35, H * 0.35);
             const videoX = W / 2 - videoSize / 2;
-            const videoY = H - videoSize; // От самого низа
+            const videoY = H - videoSize;
             ctx.drawImage(this.stepVideo, videoX, videoY, videoSize, videoSize);
         }
         
